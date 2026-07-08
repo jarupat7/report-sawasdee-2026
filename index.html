@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sawasdee 2026 Pickleball Tournament Registration Dashboard</title>
+    <!-- General Sans (Display Font) from Fontshare -->
+    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@700,600,500,400&display=swap" rel="stylesheet">
+    <!-- DM Sans (Body Font) & JetBrains Mono (Code Font) from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (for layout utilities) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Apache ECharts via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"General Sans"', 'sans-serif'],
+                        body: ['"DM Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#6366F1',
+                        'primary-hover': '#4F46E5',
+                        secondary: '#20970B',
+                        neutral: '#9C9C9C',
+                        bgLight: '#FAFAFA',
+                        surfaceLight: '#FFFFFF',
+                        borderLight: '#E8E8EC',
+                        textPrimaryLight: '#0A0A0A',
+                        textSecondaryLight: '#6B6B6B',
+                        
+                        bgDark: '#09090B',
+                        surfaceDark: '#0C0C0F',
+                        borderDark: '#1E1E24',
+                        textPrimaryDark: '#FAFAFA',
+                        textSecondaryDark: '#A0A0A5',
+
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        error: '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        h1, h2, h3, h4, h5, h6, .display-font {
+            font-family: 'General Sans', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E8E8EC;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #1E1E24;
+        }
+
+        /* ECharts Theme support */
+        .chart-container {
+            width: 100%;
+            height: 350px;
+        }
+        
+        /* Card Hover Effects from genesis-DESIGN.md */
+        .genesis-card {
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .genesis-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+        .dark .genesis-card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Dot Matrix Background Pattern */
+        .dot-grid {
+            background-image: radial-gradient(#6366f1 1px, transparent 0);
+            background-size: 24px 24px;
+            opacity: 0.05;
+        }
+        .dark .dot-grid {
+            background-image: radial-gradient(#6366f1 1.5px, transparent 0);
+            opacity: 0.08;
+        }
+    </style>
+</head>
+<body class="bg-bgLight dark:bg-bgDark text-textPrimaryLight dark:text-textPrimaryDark min-h-screen relative overflow-x-hidden">
+    
+    <!-- Background Dot Pattern -->
+    <div class="absolute inset-0 dot-grid pointer-events-none z-0"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 max-w-[1280px] mx-auto px-6 py-4 flex flex-col min-h-screen gap-6">
+        
+        <!-- Sticky Top Navigation -->
+        <nav class="sticky top-0 bg-surfaceLight/80 dark:bg-surfaceDark/80 backdrop-blur-md border-b border-borderLight dark:border-borderDark h-[64px] flex items-center justify-between z-40 rounded-xl px-6 transition-all duration-300">
+            <div class="flex items-center gap-3">
+                <!-- Brand Accent Badge -->
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">S</div>
+                <span class="text-xl font-bold tracking-tight display-font">Sawasdee 2026 <span class="text-secondary text-sm font-semibold ml-1 px-2 py-0.5 border border-secondary/20 rounded-full bg-secondary/5">Pickleball</span></span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Sync status badge -->
+                <div class="hidden sm:flex items-center gap-1.5 text-xs text-textSecondaryLight dark:text-textSecondaryDark bg-borderLight/30 dark:bg-borderDark/30 px-3 py-1.5 rounded-full border border-borderLight dark:border-borderDark">
+                    <span id="sync-dot" class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+                    <span id="sync-text">Connecting...</span>
+                </div>
+
+                <!-- Refresh Button -->
+                <button id="btn-refresh" onclick="fetchData()" class="p-2 border border-borderLight dark:border-borderDark rounded-md hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200" title="Sync live Google Sheet">
+                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="p-2 border border-borderLight dark:border-borderDark rounded-md hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200" title="Toggle Theme">
+                    <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- KPI Summary row -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- KPI 1: Total Registrations -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
+                <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Total Registrations</span>
+                    <i data-lucide="users" class="w-4 h-4 text-primary"></i>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="kpi-total" class="text-3xl font-bold tracking-tight display-font">-</span>
+                    <span id="kpi-total-change" class="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> Live
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Estimated Revenue -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
+                <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Estimated Revenue</span>
+                    <i data-lucide="dollar-sign" class="w-4 h-4 text-secondary"></i>
+                </div>
+                <div class="mt-2 flex flex-col">
+                    <div class="flex justify-between items-baseline border-b border-borderLight/50 dark:border-borderDark/50 pb-1">
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark font-mono">THB:</span>
+                        <span id="kpi-revenue-thb" class="text-lg font-bold display-font font-mono text-textPrimaryLight dark:text-textPrimaryDark">-</span>
+                    </div>
+                    <div class="flex justify-between items-baseline pt-1">
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark font-mono">USD:</span>
+                        <span id="kpi-revenue-usd" class="text-lg font-bold display-font font-mono text-textPrimaryLight dark:text-textPrimaryDark">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 3: Nationalities Represented -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
+                <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Countries Represented</span>
+                    <i data-lucide="globe" class="w-4 h-4 text-purple"></i>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="kpi-countries" class="text-3xl font-bold tracking-tight display-font">-</span>
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark font-medium">Nations</span>
+                </div>
+            </div>
+
+            <!-- KPI 4: Active Gender Split -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
+                <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Gender Distribution</span>
+                    <i data-lucide="git-commit" class="w-4 h-4 text-pink"></i>
+                </div>
+                <div class="flex items-center gap-3 mt-2 h-full">
+                    <div class="flex flex-col w-full gap-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-primary">Male (<span id="pct-male">-</span>%)</span>
+                            <span class="text-pink-500">Female (<span id="pct-female">-</span>%)</span>
+                        </div>
+                        <div class="w-full bg-borderLight dark:bg-borderDark h-3 rounded-full overflow-hidden flex">
+                            <div id="bar-male" class="bg-primary h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="bar-female" class="bg-pink-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Visualization Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Chart Card 1: Country Breakdown -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
+                    <i data-lucide="flag" class="w-4 h-4 text-primary"></i> Player Nationalities
+                </h3>
+                <div id="chart-country" class="chart-container"></div>
+            </div>
+
+            <!-- Chart Card 2: Event Type Popularity -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
+                    <i data-lucide="award" class="w-4 h-4 text-secondary"></i> Event Popularity
+                </h3>
+                <div id="chart-event" class="chart-container"></div>
+            </div>
+
+            <!-- Chart Card 3: T-Shirt Size Distribution -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
+                    <i data-lucide="shirt" class="w-4 h-4 text-warning"></i> T-Shirt Sizes
+                </h3>
+                <div id="chart-tshirt" class="chart-container"></div>
+            </div>
+
+            <!-- Chart Card 4: Age Groups Breakdown -->
+            <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-purple"></i> Age Distribution (Birth Year)
+                </h3>
+                <div id="chart-age" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- Table & Filter section -->
+        <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <!-- Table Toolbar -->
+            <div class="p-5 border-b border-borderLight dark:border-borderDark flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <!-- Search Input -->
+                    <div class="relative w-full md:w-[320px]">
+                        <input type="text" id="search-input" oninput="applyFilters()" placeholder="Search Name, ID, Email..." class="w-full bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-md py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-3 focus:ring-primary/10 focus:border-primary transition-all duration-200 text-textPrimaryLight dark:text-textPrimaryDark">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-textSecondaryLight dark:text-textSecondaryDark"></i>
+                    </div>
+
+                    <!-- Filter Options -->
+                    <select id="filter-nationality" onchange="applyFilters()" class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-3 focus:ring-primary/10 focus:border-primary text-textPrimaryLight dark:text-textPrimaryDark">
+                        <option value="">All Nationalities</option>
+                    </select>
+
+                    <select id="filter-event-class" onchange="applyFilters()" class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-3 focus:ring-primary/10 focus:border-primary text-textPrimaryLight dark:text-textPrimaryDark">
+                        <option value="">All Divisions</option>
+                        <option value="Professional">Professional (PRO)</option>
+                        <option value="Amateur">Amateur</option>
+                        <option value="Combined Age">Combined Age</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 w-full md:w-auto justify-end">
+                    <!-- Export CSV Button -->
+                    <button onclick="exportFilteredCSV()" class="flex items-center gap-2 bg-surfaceLight dark:bg-surfaceDark hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textPrimaryLight dark:text-textPrimaryDark border border-borderLight dark:border-borderDark px-4 py-2 rounded-md font-medium text-sm transition-all duration-200">
+                        <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table content container -->
+            <div class="overflow-x-auto w-full relative">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-bgLight dark:bg-bgDark text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark border-b border-borderLight dark:border-borderDark sticky top-0">
+                            <th class="py-3.5 px-5">Tag ID</th>
+                            <th class="py-3.5 px-5">Full Name</th>
+                            <th class="py-3.5 px-5">Nationality</th>
+                            <th class="py-3.5 px-5">Event 1 Name</th>
+                            <th class="py-3.5 px-5">Event 2 Name</th>
+                            <th class="py-3.5 px-5">Total Fee</th>
+                            <th class="py-3.5 px-5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-borderLight dark:divide-borderDark text-sm">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-textSecondaryLight dark:text-textSecondaryDark">
+                                <span class="inline-block animate-spin border-2 border-primary border-t-transparent w-5 h-5 rounded-full mr-2 align-middle"></span> Loading players...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer / Pagination -->
+            <div class="p-4 border-t border-borderLight dark:border-borderDark flex justify-between items-center">
+                <div class="text-xs text-textSecondaryLight dark:text-textSecondaryDark">
+                    Showing <span id="paginated-range" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> of <span id="filtered-total" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> entries
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="goToPage(1)" id="btn-first" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="changePage(-1)" id="btn-prev" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <span class="text-xs font-medium px-3 text-textPrimaryLight dark:text-textPrimaryDark">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                    <button onclick="changePage(1)" id="btn-next" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="goToPage(-1)" id="btn-last" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footnote -->
+        <footer class="mt-auto py-6 border-t border-borderLight dark:border-borderDark flex justify-between items-center text-xs text-textSecondaryLight dark:text-textSecondaryDark">
+            <span>&copy; Sawasdee 2026 Pickleball Tournament. Design system "Genesis".</span>
+            <span>Real-time connected via Google Sheets.</span>
+        </footer>
+
+    </div>
+
+    <!-- Slide-Out Sidebar Details Panel -->
+    <div id="details-overlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <div id="details-sidebar" class="fixed right-0 top-0 h-full w-full md:w-[480px] bg-surfaceLight dark:bg-surfaceDark border-l border-borderLight dark:border-borderDark z-50 shadow-2xl translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- Sidebar Header -->
+        <div class="p-6 border-b border-borderLight dark:border-borderDark flex items-center justify-between">
+            <div class="flex flex-col">
+                <span id="sidebar-tag" class="font-mono text-xs text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 w-fit mb-1">-</span>
+                <h2 id="sidebar-name" class="text-2xl font-bold tracking-tight display-font text-textPrimaryLight dark:text-textPrimaryDark">Player Details</h2>
+            </div>
+            <button onclick="closeSidebar()" class="p-1.5 rounded-md hover:bg-borderLight/50 dark:hover:bg-borderDark/50 text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+            
+            <!-- Contact Card section -->
+            <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-3">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i> Profile & Contacts
+                </h3>
+                <div class="grid grid-cols-2 gap-4 text-sm mt-1">
+                    <div>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Gender</span>
+                        <span id="sidebar-gender" class="font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Birth Year</span>
+                        <span id="sidebar-birth" class="font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Nationality</span>
+                        <span id="sidebar-nationality" class="font-semibold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">T-Shirt Size</span>
+                        <span id="sidebar-tshirt" class="font-semibold">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">ID / Passport No.</span>
+                        <span id="sidebar-passport" class="font-semibold font-mono bg-borderLight/40 dark:bg-borderDark/40 px-2 py-0.5 rounded border border-borderLight dark:border-borderDark">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Email Address</span>
+                        <a id="sidebar-email" href="#" class="font-semibold text-primary hover:underline block">-</a>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Phone Number</span>
+                        <span id="sidebar-phone" class="font-semibold">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events List section -->
+            <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-4">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
+                    <i data-lucide="award" class="w-3.5 h-3.5"></i> Tournament Registrations
+                </h3>
+                
+                <!-- Event 1 -->
+                <div id="sidebar-event1-container" class="flex flex-col border-b border-borderLight/60 dark:border-borderDark/60 pb-3">
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Event 1</span>
+                    <span id="sidebar-event1-name" class="font-semibold mt-0.5 text-sm">-</span>
+                    <div id="sidebar-event1-partner-row" class="mt-2 text-xs hidden">
+                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block">Partner Details:</span>
+                        <div class="bg-white dark:bg-surfaceDark p-2 border border-borderLight dark:border-borderDark rounded font-mono text-[11px] whitespace-pre-line text-textPrimaryLight dark:text-textPrimaryDark mt-1" id="sidebar-event1-partner"></div>
+                    </div>
+                </div>
+
+                <!-- Event 2 -->
+                <div id="sidebar-event2-container" class="flex flex-col">
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Event 2</span>
+                    <span id="sidebar-event2-name" class="font-semibold mt-0.5 text-sm">-</span>
+                    <div id="sidebar-event2-partner-row" class="mt-2 text-xs hidden">
+                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block">Partner Details:</span>
+                        <div class="bg-white dark:bg-surfaceDark p-2 border border-borderLight dark:border-borderDark rounded font-mono text-[11px] whitespace-pre-line text-textPrimaryLight dark:text-textPrimaryDark mt-1" id="sidebar-event2-partner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Card -->
+            <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Registration Notes
+                </h3>
+                <p id="sidebar-notes" class="text-sm italic text-textSecondaryLight dark:text-textSecondaryDark">-</p>
+            </div>
+            
+        </div>
+        
+        <!-- Sidebar Footer Action -->
+        <div class="p-6 border-t border-borderLight dark:border-borderDark bg-bgLight/20 dark:bg-bgDark/20 flex gap-4">
+            <div class="flex flex-col justify-center">
+                <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark">Total Registration Fee</span>
+                <span id="sidebar-fee" class="text-xl font-bold font-mono text-secondary">-</span>
+            </div>
+            <button onclick="closeSidebar()" class="ml-auto bg-primary hover:bg-primary-hover text-white rounded-md px-5 py-2 font-medium text-sm transition-all duration-200">
+                Close Details
+            </button>
+        </div>
+    </div>
+
+    <!-- Script Block for Dashboard Logic -->
+    <script>
+        let rawData = [];
+        let filteredData = [];
+        let itemsPerPage = 15;
+        let currentPage = 1;
+        let selectedRowId = null;
+
+        // ECharts Instances
+        let charts = {
+            country: null,
+            event: null,
+            tshirt: null,
+            age: null
+        };
+
+        // On Load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initCharts();
+            fetchData();
+            
+            // Check saved theme
+            if (localStorage.getItem('theme') === 'dark' || 
+                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+
+            // Resize charts on window resize
+            window.addEventListener('resize', () => {
+                Object.values(charts).forEach(c => c && c.resize());
+            });
+        });
+
+        // Theme Switcher
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.setAttribute('data-lucide', 'moon');
+                localStorage.setItem('theme', 'light');
+                updateChartThemes(false);
+            } else {
+                html.classList.add('dark');
+                icon.setAttribute('data-lucide', 'sun');
+                localStorage.setItem('theme', 'dark');
+                updateChartThemes(true);
+            }
+            lucide.createIcons();
+        }
+
+        // Initialize ECharts with genesis theme settings
+        function initCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            charts.country = echarts.init(document.getElementById('chart-country'), isDark ? 'dark' : null);
+            charts.event = echarts.init(document.getElementById('chart-event'), isDark ? 'dark' : null);
+            charts.tshirt = echarts.init(document.getElementById('chart-tshirt'), isDark ? 'dark' : null);
+            charts.age = echarts.init(document.getElementById('chart-age'), isDark ? 'dark' : null);
+        }
+
+        function updateChartThemes(isDark) {
+            Object.keys(charts).forEach(key => {
+                if (charts[key]) {
+                    charts[key].dispose();
+                }
+            });
+            charts.country = echarts.init(document.getElementById('chart-country'), isDark ? 'dark' : null);
+            charts.event = echarts.init(document.getElementById('chart-event'), isDark ? 'dark' : null);
+            charts.tshirt = echarts.init(document.getElementById('chart-tshirt'), isDark ? 'dark' : null);
+            charts.age = echarts.init(document.getElementById('chart-age'), isDark ? 'dark' : null);
+            renderCharts();
+        }
+
+        // CSV Parser Function (RFC 4180 compliant)
+        function parseCSV(text) {
+            let p = '', c = '', r = [];
+            let q = false;
+            let row = [''];
+            for (let i = 0; i < text.length; i++) {
+                c = text[i];
+                let next = text[i+1];
+                if (c === '"') {
+                    if (q && next === '"') { row[row.length - 1] += '"'; i++; } // escaped quote
+                    else { q = !q; }
+                } else if (c === ',' && !q) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !q) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    r.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                r.push(row);
+            }
+            
+            if (r.length === 0) return [];
+            let headers = r[0].map(h => h.trim());
+            let data = [];
+            for (let i = 1; i < r.length; i++) {
+                if (r[i].length < headers.length) continue;
+                let obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = r[i][j];
+                }
+                data.push(obj);
+            }
+            return data;
+        }
+
+        // Parse fee helper
+        function parseFee(feeStr) {
+            if (!feeStr) return { amount: 0, currency: 'USD' };
+            let clean = feeStr.replace(/,/g, '').trim();
+            let num = parseFloat(clean.replace(/[^0-9.]/g, '')) || 0;
+            let currency = 'USD'; // default
+            if (clean.toLowerCase().includes('thb') || clean.includes('บาท')) {
+                currency = 'THB';
+            } else if (clean.toLowerCase().includes('usd') || clean.includes('доллар') || clean.includes('米ドル') || clean.includes('dollar')) {
+                currency = 'USD';
+            } else {
+                if (num >= 500) currency = 'THB';
+                else currency = 'USD';
+            }
+            return { amount: num, currency: currency };
+        }
+
+        // Parse event helpers
+        function parseEventDetails(eventName) {
+            if (!eventName) return null;
+            let name = eventName.trim();
+            let type = 'Other';
+            if (name.includes('MS') || name.includes('Men\'s Singles') || name.includes('ชายเดี่ยว')) type = 'Men\'s Singles (MS)';
+            else if (name.includes('WS') || name.includes('Women\'s Singles') || name.includes('หญิงเดี่ยว')) type = 'Women\'s Singles (WS)';
+            else if (name.includes('MD') || name.includes('Men\'s Doubles') || name.includes('ชายคู่') || name.includes('男双')) type = 'Men\'s Doubles (MD)';
+            else if (name.includes('WD') || name.includes('Women\'s Doubles') || name.includes('หญิงคู่') || name.includes('女双')) type = 'Women\'s Doubles (WD)';
+            else if (name.includes('XD') || name.includes('Mixed Doubles') || name.includes('คู่ผสม') || name.includes('混双')) type = 'Mixed Doubles (XD)';
+            
+            let classification = 'Amateur';
+            if (name.toLowerCase().includes('pro') || name.includes('ทั่วไป') || name.includes('professional')) {
+                classification = 'Professional';
+            } else if (name.toLowerCase().includes('combined') || name.includes('รวมอายุ') || name.includes('总年龄组') || name.includes('Combined Age')) {
+                classification = 'Combined Age';
+            }
+            return { original: name, type: type, class: classification };
+        }
+
+        // Fetch Live Google Sheets Data or Fallback to Local CSV
+        async function fetchData() {
+            const syncDot = document.getElementById('sync-dot');
+            const syncText = document.getElementById('sync-text');
+            const btnRefresh = document.getElementById('btn-refresh');
+
+            syncDot.className = "w-2 h-2 rounded-full bg-warning animate-pulse";
+            syncText.textContent = "Syncing Sheets...";
+            btnRefresh.classList.add('animate-spin');
+
+            const sheetUrl = "https://docs.google.com/spreadsheets/d/12ktjlyh9Mo6t1DFA8zVuuzL5YJe3bnnM3tj_3S7qDe4/export?format=csv&gid=256681292";
+            let csvText = "";
+            let source = "Google Sheets (Live)";
+
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error("Google Sheets returned error " + response.status);
+                csvText = await response.text();
+            } catch (e) {
+                console.warn("Failed to fetch live Google Sheets. Trying local sheet_data.csv fallback...", e);
+                try {
+                    const localResponse = await fetch("./sheet_data.csv");
+                    if (!localResponse.ok) throw new Error("Local fallback returned error " + localResponse.status);
+                    csvText = await localResponse.text();
+                    source = "Local CSV (Fallback)";
+                } catch (err) {
+                    console.error("All fetch sources failed", err);
+                    syncDot.className = "w-2 h-2 rounded-full bg-error";
+                    syncText.textContent = "Connection Failed";
+                    btnRefresh.classList.remove('animate-spin');
+                    document.getElementById('table-body').innerHTML = `
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-error font-medium">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 inline-block mr-1 align-middle"></i> Failed to retrieve registration data. Check connection.
+                            </td>
+                        </tr>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+            }
+
+            rawData = parseCSV(csvText);
+            
+            // Clean up properties and normalize types
+            rawData.forEach((item, idx) => {
+                item._id = item.Tag_ID || `TEMP-${idx}`;
+                item.parsedFee = parseFee(item.Total_Fee);
+                item.event1 = parseEventDetails(item.Event_1_Name);
+                item.event2 = parseEventDetails(item.Event_2_Name);
+                item.NationalityClean = (item.Nationality || 'Unknown').trim().toUpperCase();
+            });
+
+            filteredData = [...rawData];
+
+            // Update UI elements
+            syncDot.className = "w-2 h-2 rounded-full bg-success";
+            const now = new Date();
+            syncText.textContent = `${source} - Last Sync: ${now.toLocaleTimeString()}`;
+            btnRefresh.classList.remove('animate-spin');
+
+            // Populate filters and update table
+            populateFilterOptions();
+            updateKPIs();
+            renderCharts();
+            applyFilters();
+        }
+
+        // Dynamic Filtering Options (Nationality)
+        function populateFilterOptions() {
+            const natSelect = document.getElementById('filter-nationality');
+            const currentSelected = natSelect.value;
+            natSelect.innerHTML = '<option value="">All Nationalities</option>';
+            
+            const nationalities = [...new Set(rawData.map(i => i.NationalityClean))].filter(n => n).sort();
+            nationalities.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n.charAt(0) + n.slice(1).toLowerCase();
+                natSelect.appendChild(opt);
+            });
+            natSelect.value = currentSelected;
+        }
+
+        // Apply visual KPIs
+        function updateKPIs() {
+            document.getElementById('kpi-total').textContent = filteredData.length;
+
+            let thbTotal = 0;
+            let usdTotal = 0;
+            filteredData.forEach(item => {
+                if (item.parsedFee.currency === 'THB') thbTotal += item.parsedFee.amount;
+                if (item.parsedFee.currency === 'USD') usdTotal += item.parsedFee.amount;
+            });
+            document.getElementById('kpi-revenue-thb').textContent = thbTotal.toLocaleString() + ' ฿';
+            document.getElementById('kpi-revenue-usd').textContent = usdTotal.toLocaleString() + ' $';
+
+            const distinctCountries = new Set(filteredData.map(i => i.NationalityClean).filter(n => n));
+            document.getElementById('kpi-countries').textContent = distinctCountries.size;
+
+            let maleCount = 0;
+            let femaleCount = 0;
+            filteredData.forEach(item => {
+                const gender = (item.Gender || '').trim().toUpperCase();
+                if (gender === 'M' || gender === 'MALE') maleCount++;
+                if (gender === 'F' || gender === 'FEMALE') femaleCount++;
+            });
+            const totalGender = maleCount + femaleCount;
+            if (totalGender > 0) {
+                const malePct = Math.round((maleCount / totalGender) * 100);
+                const femalePct = 100 - malePct;
+                document.getElementById('pct-male').textContent = malePct;
+                document.getElementById('pct-female').textContent = femalePct;
+                document.getElementById('bar-male').style.width = malePct + '%';
+                document.getElementById('bar-female').style.width = femalePct + '%';
+            } else {
+                document.getElementById('pct-male').textContent = '0';
+                document.getElementById('pct-female').textContent = '0';
+                document.getElementById('bar-male').style.width = '50%';
+                document.getElementById('bar-female').style.width = '50%';
+            }
+        }
+
+        // Render charts based on ECharts CDN
+        function renderCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textStyle = {
+                fontFamily: 'DM Sans, sans-serif',
+                color: isDark ? '#A0A0A5' : '#6B6B6B'
+            };
+            const axisLineStyle = {
+                lineStyle: {
+                    color: isDark ? '#1E1E24' : '#E8E8EC'
+                }
+            };
+
+            // Chart 1: Nationality
+            const countryCounts = {};
+            filteredData.forEach(item => {
+                const country = item.NationalityClean || 'UNKNOWN';
+                countryCounts[country] = (countryCounts[country] || 0) + 1;
+            });
+            const countryData = Object.entries(countryCounts)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => b.value - a.value);
+
+            charts.country.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '5%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: countryData.map(d => d.name),
+                    axisLabel: { color: textStyle.color, interval: 0, rotate: 30 },
+                    axisLine: axisLineStyle
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isDark ? '#1E1E24' : '#F3F4F6' } },
+                    axisLabel: { color: textStyle.color }
+                },
+                series: [{
+                    data: countryData.map(d => d.value),
+                    type: 'bar',
+                    itemStyle: { color: '#6366F1', borderRadius: [4, 4, 0, 0] }
+                }]
+            });
+
+            // Chart 2: Event Popularity
+            const eventCounts = {};
+            filteredData.forEach(item => {
+                if (item.event1) eventCounts[item.event1.type] = (eventCounts[item.event1.type] || 0) + 1;
+                if (item.event2) eventCounts[item.event2.type] = (eventCounts[item.event2.type] || 0) + 1;
+            });
+            const eventData = Object.entries(eventCounts)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => a.value - b.value);
+
+            charts.event.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '8%', bottom: '3%', top: '5%', containLabel: true },
+                xAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isDark ? '#1E1E24' : '#F3F4F6' } },
+                    axisLabel: { color: textStyle.color }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: eventData.map(d => d.name),
+                    axisLabel: { color: textStyle.color },
+                    axisLine: axisLineStyle
+                },
+                series: [{
+                    data: eventData.map(d => d.value),
+                    type: 'bar',
+                    itemStyle: { color: '#10B981', borderRadius: [0, 4, 4, 0] }
+                }]
+            });
+
+            // Chart 3: T-Shirt Size
+            const tshirtCounts = {};
+            filteredData.forEach(item => {
+                const size = (item.T_Shirt || 'Not Specified').trim().toUpperCase();
+                tshirtCounts[size] = (tshirtCounts[size] || 0) + 1;
+            });
+            const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'NOT SPECIFIED'];
+            const tshirtData = sizeOrder
+                .filter(s => tshirtCounts[s])
+                .map(s => ({ name: s, value: tshirtCounts[s] }));
+
+            charts.tshirt.setOption({
+                tooltip: { trigger: 'item' },
+                legend: {
+                    orient: 'horizontal',
+                    bottom: '0%',
+                    textStyle: { color: textStyle.color }
+                },
+                series: [{
+                    name: 'T-Shirt Size',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: { borderRadius: 6, borderColor: isDark ? '#0C0C0F' : '#FFF', borderWidth: 2 },
+                    label: { show: false, position: 'center' },
+                    emphasis: { label: { show: true, fontSize: 16, fontWeight: 'bold' } },
+                    labelLine: { show: false },
+                    data: tshirtData,
+                    color: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16']
+                }]
+            });
+
+            // Chart 4: Age Groups Breakdown
+            const birthYearCounts = {};
+            filteredData.forEach(item => {
+                const year = parseInt(item.Birth_Year);
+                if (year && year > 1900 && year < 2026) {
+                    birthYearCounts[year] = (birthYearCounts[year] || 0) + 1;
+                } else {
+                    birthYearCounts['N/A'] = (birthYearCounts['N/A'] || 0) + 1;
+                }
+            });
+            const birthYearData = Object.entries(birthYearCounts)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => {
+                    if (a.name === 'N/A') return 1;
+                    if (b.name === 'N/A') return -1;
+                    return parseInt(a.name) - parseInt(b.name);
+                });
+
+            charts.age.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '5%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: birthYearData.map(d => d.name),
+                    axisLabel: { color: textStyle.color },
+                    axisLine: axisLineStyle
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isDark ? '#1E1E24' : '#F3F4F6' } },
+                    axisLabel: { color: textStyle.color }
+                },
+                series: [{
+                    data: birthYearData.map(d => d.value),
+                    type: 'bar',
+                    itemStyle: { color: '#8B5CF6', borderRadius: [4, 4, 0, 0] }
+                }]
+            });
+        }
+
+        // Apply interactive filters
+        function applyFilters() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            const nationalityFilter = document.getElementById('filter-nationality').value;
+            const eventClassFilter = document.getElementById('filter-event-class').value;
+
+            filteredData = rawData.filter(item => {
+                const name = (item.Full_Name || '').toLowerCase();
+                const tag = (item.Tag_ID || '').toLowerCase();
+                const email = (item.Email || '').toLowerCase();
+                const phone = (item.Phone || '').toLowerCase();
+                const matchSearch = !searchQuery || 
+                    name.includes(searchQuery) || 
+                    tag.includes(searchQuery) || 
+                    email.includes(searchQuery) ||
+                    phone.includes(searchQuery);
+
+                const matchNationality = !nationalityFilter || item.NationalityClean === nationalityFilter;
+
+                const isPro1 = item.event1 && item.event1.class === eventClassFilter;
+                const isPro2 = item.event2 && item.event2.class === eventClassFilter;
+                const matchEventClass = !eventClassFilter || isPro1 || isPro2;
+
+                return matchSearch && matchNationality && matchEventClass;
+            });
+
+            currentPage = 1;
+            updateKPIs();
+            renderCharts();
+            renderTable();
+        }
+
+        // Render data rows in UI table
+        function renderTable() {
+            const tableBody = document.getElementById('table-body');
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            document.getElementById('current-page').textContent = currentPage;
+            document.getElementById('total-pages').textContent = totalPages;
+            document.getElementById('filtered-total').textContent = filteredData.length;
+
+            document.getElementById('btn-first').disabled = currentPage === 1;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === totalPages;
+            document.getElementById('btn-last').disabled = currentPage === totalPages;
+
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-textSecondaryLight dark:text-textSecondaryDark font-medium">
+                            <i data-lucide="info" class="w-5 h-5 inline-block mr-1 align-middle"></i> No matching registrations found.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('paginated-range').textContent = '0';
+                lucide.createIcons();
+                return;
+            }
+
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, filteredData.length);
+            document.getElementById('paginated-range').textContent = `${startIdx + 1}-${endIdx}`;
+
+            const paginatedItems = filteredData.slice(startIdx, endIdx);
+            
+            let html = "";
+            paginatedItems.forEach(item => {
+                const status = (item.Status || 'Pending').trim().toUpperCase();
+                let statusBadge = '';
+                if (status === 'PAID' || status === 'SUCCESS' || status === 'CONFIRMED') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">Paid</span>';
+                } else if (status === 'PENDING') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/20">Pending</span>';
+                } else {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error/15 text-error border border-error/20">${status}</span>`;
+                }
+
+                const isSelected = selectedRowId === item._id;
+                const rowClass = isSelected 
+                    ? 'bg-primary/10 border-l-2 border-l-primary font-medium dark:bg-primary/20 hover:bg-primary/15'
+                    : 'hover:bg-borderLight/20 dark:hover:bg-borderDark/20 cursor-pointer transition-colors duration-150';
+
+                html += `
+                    <tr onclick="showDetails('${item._id}')" class="${rowClass}">
+                        <td class="py-3 px-5 font-mono text-xs text-textSecondaryLight dark:text-textSecondaryDark">${item.Tag_ID || '-'}</td>
+                        <td class="py-3 px-5 font-medium text-textPrimaryLight dark:text-textPrimaryDark">${item.Full_Name || '-'}</td>
+                        <td class="py-3 px-5">${item.Nationality || '-'}</td>
+                        <td class="py-3 px-5 text-xs truncate max-w-[200px]" title="${item.Event_1_Name || ''}">${item.Event_1_Name || '-'}</td>
+                        <td class="py-3 px-5 text-xs truncate max-w-[200px]" title="${item.Event_2_Name || ''}">${item.Event_2_Name || '-'}</td>
+                        <td class="py-3 px-5 font-mono text-xs font-semibold text-textPrimaryLight dark:text-textPrimaryDark">${item.Total_Fee || '-'}</td>
+                        <td class="py-3 px-5 text-center">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Pagination controls
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+        }
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+            if (page === -1) currentPage = totalPages;
+            else currentPage = page;
+            renderTable();
+        }
+
+        // Show player details in sidebar
+        function showDetails(id) {
+            selectedRowId = id;
+            renderTable();
+
+            const item = rawData.find(i => i._id === id);
+            if (!item) return;
+
+            document.getElementById('sidebar-tag').textContent = item.Tag_ID || 'NO TAG ID';
+            document.getElementById('sidebar-name').textContent = item.Full_Name || 'Unknown Player';
+            document.getElementById('sidebar-gender').textContent = (item.Gender || '-').trim().toUpperCase();
+            document.getElementById('sidebar-birth').textContent = item.Birth_Year || '-';
+            document.getElementById('sidebar-nationality').textContent = item.Nationality || '-';
+            document.getElementById('sidebar-tshirt').textContent = (item.T_Shirt || '-').trim().toUpperCase();
+            document.getElementById('sidebar-passport').textContent = item.ID_Passport || '-';
+            
+            const emailLink = document.getElementById('sidebar-email');
+            emailLink.textContent = item.Email || '-';
+            emailLink.href = item.Email ? `mailto:${item.Email}` : '#';
+            
+            document.getElementById('sidebar-phone').textContent = item.Phone || '-';
+            document.getElementById('sidebar-notes').textContent = item.Notes || 'No notes provided by registrant.';
+            document.getElementById('sidebar-fee').textContent = item.Total_Fee || '-';
+
+            // Event 1
+            document.getElementById('sidebar-event1-name').textContent = item.Event_1_Name || 'None';
+            if (item.Event_1_Partners) {
+                document.getElementById('sidebar-event1-partner-row').classList.remove('hidden');
+                document.getElementById('sidebar-event1-partner').textContent = item.Event_1_Partners;
+            } else {
+                document.getElementById('sidebar-event1-partner-row').classList.add('hidden');
+            }
+
+            // Event 2
+            document.getElementById('sidebar-event2-name').textContent = item.Event_2_Name || 'None';
+            if (item.Event_2_Partners) {
+                document.getElementById('sidebar-event2-partner-row').classList.remove('hidden');
+                document.getElementById('sidebar-event2-partner').textContent = item.Event_2_Partners;
+            } else {
+                document.getElementById('sidebar-event2-partner-row').classList.add('hidden');
+            }
+
+            document.getElementById('details-overlay').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('details-sidebar').classList.remove('translate-x-full');
+        }
+
+        // Close sidebar panel
+        function closeSidebar() {
+            selectedRowId = null;
+            renderTable();
+            document.getElementById('details-overlay').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('details-sidebar').classList.add('translate-x-full');
+        }
+
+        // Export table filtered rows back to CSV format
+        function exportFilteredCSV() {
+            if (filteredData.length === 0) return;
+            
+            const headers = ['Timestamp', 'Tag_ID', 'Status', 'Total_Fee', 'Full_Name', 'Nationality', 'ID_Passport', 'Email', 'Phone', 'Gender', 'Birth_Year', 'T_Shirt', 'Event_1_Name', 'Event_1_Partners', 'Event_2_Name', 'Event_2_Partners', 'Notes'];
+            
+            let csvRows = [];
+            csvRows.push(headers.join(','));
+
+            filteredData.forEach(item => {
+                const values = headers.map(header => {
+                    let val = item[header] || '';
+                    val = val.replace(/"/g, '""');
+                    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                        val = `"${val}"`;
+                    }
+                    return val;
+                });
+                csvRows.push(values.join(','));
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `sawasdee_2026_filtered_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
