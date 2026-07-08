@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sawasdee 2026 Pickleball Tournament Registration Dashboard</title>
+    <title>Pattaya International Badminton Sawasdee CUP 2026 Dashboard</title>
     <!-- General Sans (Display Font) from Fontshare -->
     <link href="https://api.fontshare.com/v2/css?f[]=general-sans@700,600,500,400&display=swap" rel="stylesheet">
     <!-- DM Sans (Body Font) & JetBrains Mono (Code Font) from Google Fonts -->
@@ -123,17 +123,25 @@
         <!-- Sticky Top Navigation -->
         <nav class="sticky top-0 bg-surfaceLight/80 dark:bg-surfaceDark/80 backdrop-blur-md border-b border-borderLight dark:border-borderDark h-[64px] flex items-center justify-between z-40 rounded-xl px-6 transition-all duration-300">
             <div class="flex items-center gap-3">
-                <!-- Brand Accent Badge -->
                 <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">S</div>
-                <span class="text-xl font-bold tracking-tight display-font">Sawasdee 2026 <span class="text-secondary text-sm font-semibold ml-1 px-2 py-0.5 border border-secondary/20 rounded-full bg-secondary/5">Pickleball</span></span>
+                <span class="text-lg md:text-xl font-bold tracking-tight display-font flex items-center gap-2">
+                    <span id="nav-title" class="truncate max-w-[280px] sm:max-w-none">Pattaya Sawasdee CUP 2026</span> 
+                    <span data-i18n="subTitle" class="text-secondary text-xs font-semibold px-2 py-0.5 border border-secondary/20 rounded-full bg-secondary/5">Badminton</span>
+                </span>
             </div>
             
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 <!-- Sync status badge -->
                 <div class="hidden sm:flex items-center gap-1.5 text-xs text-textSecondaryLight dark:text-textSecondaryDark bg-borderLight/30 dark:bg-borderDark/30 px-3 py-1.5 rounded-full border border-borderLight dark:border-borderDark">
                     <span id="sync-dot" class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
-                    <span id="sync-text">Connecting...</span>
+                    <span id="sync-text" data-i18n="connecting">Connecting...</span>
                 </div>
+
+                <!-- Language Toggle Button -->
+                <button onclick="toggleLanguage()" class="flex items-center gap-1 px-2.5 py-1.5 border border-borderLight dark:border-borderDark rounded-md hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-xs font-bold text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200">
+                    <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+                    <span id="lang-label">TH</span>
+                </button>
 
                 <!-- Refresh Button -->
                 <button id="btn-refresh" onclick="fetchData()" class="p-2 border border-borderLight dark:border-borderDark rounded-md hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200" title="Sync live Google Sheet">
@@ -152,13 +160,13 @@
             <!-- KPI 1: Total Registrations -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
                 <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Total Registrations</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider" data-i18n="totalReg">Total Registrations</span>
                     <i data-lucide="users" class="w-4 h-4 text-primary"></i>
                 </div>
                 <div class="flex items-baseline gap-2 mt-2">
                     <span id="kpi-total" class="text-3xl font-bold tracking-tight display-font">-</span>
-                    <span id="kpi-total-change" class="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i> Live
+                    <span class="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> <span data-i18n="live">Live</span>
                     </span>
                 </div>
             </div>
@@ -166,7 +174,7 @@
             <!-- KPI 2: Estimated Revenue -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
                 <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Estimated Revenue</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider" data-i18n="estRev">Estimated Revenue</span>
                     <i data-lucide="dollar-sign" class="w-4 h-4 text-secondary"></i>
                 </div>
                 <div class="mt-2 flex flex-col">
@@ -184,26 +192,26 @@
             <!-- KPI 3: Nationalities Represented -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
                 <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Countries Represented</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider" data-i18n="countries">Countries Represented</span>
                     <i data-lucide="globe" class="w-4 h-4 text-purple"></i>
                 </div>
                 <div class="flex items-baseline gap-2 mt-2">
                     <span id="kpi-countries" class="text-3xl font-bold tracking-tight display-font">-</span>
-                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark font-medium">Nations</span>
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark font-medium" data-i18n="nations">Nations</span>
                 </div>
             </div>
 
             <!-- KPI 4: Active Gender Split -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 genesis-card flex flex-col gap-2">
                 <div class="flex justify-between items-center text-textSecondaryLight dark:text-textSecondaryDark">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Gender Distribution</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider" data-i18n="genderDist">Gender Distribution</span>
                     <i data-lucide="git-commit" class="w-4 h-4 text-pink"></i>
                 </div>
                 <div class="flex items-center gap-3 mt-2 h-full">
                     <div class="flex flex-col w-full gap-1">
                         <div class="flex justify-between text-xs font-semibold">
-                            <span class="text-primary">Male (<span id="pct-male">-</span>%)</span>
-                            <span class="text-pink-500">Female (<span id="pct-female">-</span>%)</span>
+                            <span class="text-primary"><span data-i18n="male">Male</span> (<span id="pct-male">-</span>%)</span>
+                            <span class="text-pink-500"><span data-i18n="female">Female</span> (<span id="pct-female">-</span>%)</span>
                         </div>
                         <div class="w-full bg-borderLight dark:bg-borderDark h-3 rounded-full overflow-hidden flex">
                             <div id="bar-male" class="bg-primary h-full transition-all duration-500" style="width: 50%"></div>
@@ -219,7 +227,7 @@
             <!-- Chart Card 1: Country Breakdown -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
-                    <i data-lucide="flag" class="w-4 h-4 text-primary"></i> Player Nationalities
+                    <i data-lucide="flag" class="w-4 h-4 text-primary"></i> <span data-i18n="chartNationalities">Player Nationalities</span>
                 </h3>
                 <div id="chart-country" class="chart-container"></div>
             </div>
@@ -227,7 +235,7 @@
             <!-- Chart Card 2: Event Type Popularity -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
-                    <i data-lucide="award" class="w-4 h-4 text-secondary"></i> Event Popularity
+                    <i data-lucide="award" class="w-4 h-4 text-secondary"></i> <span data-i18n="chartEvents">Event Popularity</span>
                 </h3>
                 <div id="chart-event" class="chart-container"></div>
             </div>
@@ -235,7 +243,7 @@
             <!-- Chart Card 3: T-Shirt Size Distribution -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
-                    <i data-lucide="shirt" class="w-4 h-4 text-warning"></i> T-Shirt Sizes
+                    <i data-lucide="shirt" class="w-4 h-4 text-warning"></i> <span data-i18n="chartTshirts">T-Shirt Sizes</span>
                 </h3>
                 <div id="chart-tshirt" class="chart-container"></div>
             </div>
@@ -243,7 +251,7 @@
             <!-- Chart Card 4: Age Groups Breakdown -->
             <div class="bg-surfaceLight dark:bg-surfaceDark border border-borderLight dark:border-borderDark rounded-xl p-5 shadow-sm">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark mb-4 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-4 h-4 text-purple"></i> Age Distribution (Birth Year)
+                    <i data-lucide="calendar" class="w-4 h-4 text-purple"></i> <span data-i18n="chartAge">Age Distribution (Birth Year)</span>
                 </h3>
                 <div id="chart-age" class="chart-container"></div>
             </div>
@@ -262,11 +270,11 @@
 
                     <!-- Filter Options -->
                     <select id="filter-nationality" onchange="applyFilters()" class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-3 focus:ring-primary/10 focus:border-primary text-textPrimaryLight dark:text-textPrimaryDark">
-                        <option value="">All Nationalities</option>
+                        <option value="" data-i18n="allNations">All Nationalities</option>
                     </select>
 
                     <select id="filter-event-class" onchange="applyFilters()" class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-3 focus:ring-primary/10 focus:border-primary text-textPrimaryLight dark:text-textPrimaryDark">
-                        <option value="">All Divisions</option>
+                        <option value="" data-i18n="allDivisions">All Divisions</option>
                         <option value="Professional">Professional (PRO)</option>
                         <option value="Amateur">Amateur</option>
                         <option value="Combined Age">Combined Age</option>
@@ -276,7 +284,7 @@
                 <div class="flex gap-3 w-full md:w-auto justify-end">
                     <!-- Export CSV Button -->
                     <button onclick="exportFilteredCSV()" class="flex items-center gap-2 bg-surfaceLight dark:bg-surfaceDark hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textPrimaryLight dark:text-textPrimaryDark border border-borderLight dark:border-borderDark px-4 py-2 rounded-md font-medium text-sm transition-all duration-200">
-                        <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+                        <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="exportCsv">Export CSV</span>
                     </button>
                 </div>
             </div>
@@ -286,19 +294,19 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-bgLight dark:bg-bgDark text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark border-b border-borderLight dark:border-borderDark sticky top-0">
-                            <th class="py-3.5 px-5">Tag ID</th>
-                            <th class="py-3.5 px-5">Full Name</th>
-                            <th class="py-3.5 px-5">Nationality</th>
-                            <th class="py-3.5 px-5">Event 1 Name</th>
-                            <th class="py-3.5 px-5">Event 2 Name</th>
-                            <th class="py-3.5 px-5">Total Fee</th>
-                            <th class="py-3.5 px-5 text-center">Status</th>
+                            <th class="py-3.5 px-5" data-i18n="colTag">Tag ID</th>
+                            <th class="py-3.5 px-5" data-i18n="colName">Full Name</th>
+                            <th class="py-3.5 px-5" data-i18n="colNation">Nationality</th>
+                            <th class="py-3.5 px-5" data-i18n="colEvent1">Event 1 Name</th>
+                            <th class="py-3.5 px-5" data-i18n="colEvent2">Event 2 Name</th>
+                            <th class="py-3.5 px-5" data-i18n="colFee">Total Fee</th>
+                            <th class="py-3.5 px-5 text-center" data-i18n="colStatus">Status</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-borderLight dark:divide-borderDark text-sm">
                         <tr>
                             <td colspan="7" class="py-8 text-center text-textSecondaryLight dark:text-textSecondaryDark">
-                                <span class="inline-block animate-spin border-2 border-primary border-t-transparent w-5 h-5 rounded-full mr-2 align-middle"></span> Loading players...
+                                <span class="inline-block animate-spin border-2 border-primary border-t-transparent w-5 h-5 rounded-full mr-2 align-middle"></span> <span data-i18n="loadingPlayers">Loading players...</span>
                             </td>
                         </tr>
                     </tbody>
@@ -308,7 +316,7 @@
             <!-- Table Footer / Pagination -->
             <div class="p-4 border-t border-borderLight dark:border-borderDark flex justify-between items-center">
                 <div class="text-xs text-textSecondaryLight dark:text-textSecondaryDark">
-                    Showing <span id="paginated-range" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> of <span id="filtered-total" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> entries
+                    <span data-i18n="showing">Showing</span> <span id="paginated-range" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> <span data-i18n="of">of</span> <span id="filtered-total" class="font-semibold text-textPrimaryLight dark:text-textPrimaryDark">-</span> <span data-i18n="entries">entries</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                     <button onclick="goToPage(1)" id="btn-first" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
@@ -317,7 +325,7 @@
                     <button onclick="changePage(-1)" id="btn-prev" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
-                    <span class="text-xs font-medium px-3 text-textPrimaryLight dark:text-textPrimaryDark">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                    <span class="text-xs font-medium px-3 text-textPrimaryLight dark:text-textPrimaryDark"><span data-i18n="page">Page</span> <span id="current-page">1</span> <span data-i18n="pageOf">of</span> <span id="total-pages">1</span></span>
                     <button onclick="changePage(1)" id="btn-next" class="p-1.5 border border-borderLight dark:border-borderDark rounded hover:bg-borderLight/20 dark:hover:bg-borderDark/20 text-textSecondaryLight dark:text-textSecondaryDark disabled:opacity-30 disabled:cursor-not-allowed">
                         <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </button>
@@ -330,8 +338,8 @@
 
         <!-- Footnote -->
         <footer class="mt-auto py-6 border-t border-borderLight dark:border-borderDark flex justify-between items-center text-xs text-textSecondaryLight dark:text-textSecondaryDark">
-            <span>&copy; Sawasdee 2026 Pickleball Tournament. Design system "Genesis".</span>
-            <span>Real-time connected via Google Sheets.</span>
+            <span id="footer-text" data-i18n="footerText">&copy; Pattaya International Badminton Sawasdee CUP 2026. Design system "Genesis".</span>
+            <span id="footer-realtime" data-i18n="footerRealtime">Real-time connected via Google Sheets.</span>
         </footer>
 
     </div>
@@ -343,7 +351,7 @@
         <div class="p-6 border-b border-borderLight dark:border-borderDark flex items-center justify-between">
             <div class="flex flex-col">
                 <span id="sidebar-tag" class="font-mono text-xs text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 w-fit mb-1">-</span>
-                <h2 id="sidebar-name" class="text-2xl font-bold tracking-tight display-font text-textPrimaryLight dark:text-textPrimaryDark">Player Details</h2>
+                <h2 id="sidebar-name-title" class="text-2xl font-bold tracking-tight display-font text-textPrimaryLight dark:text-textPrimaryDark" data-i18n="sidebarTitle">Player Details</h2>
             </div>
             <button onclick="closeSidebar()" class="p-1.5 rounded-md hover:bg-borderLight/50 dark:hover:bg-borderDark/50 text-textSecondaryLight dark:text-textSecondaryDark hover:text-textPrimaryLight dark:hover:text-textPrimaryDark transition-all duration-200">
                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -356,35 +364,35 @@
             <!-- Contact Card section -->
             <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-3">
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
-                    <i data-lucide="user" class="w-3.5 h-3.5"></i> Profile & Contacts
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i> <span data-i18n="sidebarProfile">Profile & Contacts</span>
                 </h3>
                 <div class="grid grid-cols-2 gap-4 text-sm mt-1">
                     <div>
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Gender</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarGender">Gender</span>
                         <span id="sidebar-gender" class="font-semibold">-</span>
                     </div>
                     <div>
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Birth Year</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarBirth">Birth Year</span>
                         <span id="sidebar-birth" class="font-semibold">-</span>
                     </div>
                     <div>
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Nationality</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarNation">Nationality</span>
                         <span id="sidebar-nationality" class="font-semibold">-</span>
                     </div>
                     <div>
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">T-Shirt Size</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarTshirt">T-Shirt Size</span>
                         <span id="sidebar-tshirt" class="font-semibold">-</span>
                     </div>
                     <div class="col-span-2">
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">ID / Passport No.</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarPassport">ID / Passport No.</span>
                         <span id="sidebar-passport" class="font-semibold font-mono bg-borderLight/40 dark:bg-borderDark/40 px-2 py-0.5 rounded border border-borderLight dark:border-borderDark">-</span>
                     </div>
                     <div class="col-span-2">
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Email Address</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarEmail">Email Address</span>
                         <a id="sidebar-email" href="#" class="font-semibold text-primary hover:underline block">-</a>
                     </div>
                     <div class="col-span-2">
-                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Phone Number</span>
+                        <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarPhone">Phone Number</span>
                         <span id="sidebar-phone" class="font-semibold">-</span>
                     </div>
                 </div>
@@ -393,25 +401,25 @@
             <!-- Events List section -->
             <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-4">
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
-                    <i data-lucide="award" class="w-3.5 h-3.5"></i> Tournament Registrations
+                    <i data-lucide="award" class="w-3.5 h-3.5"></i> <span data-i18n="sidebarEvents">Tournament Registrations</span>
                 </h3>
                 
                 <!-- Event 1 -->
                 <div id="sidebar-event1-container" class="flex flex-col border-b border-borderLight/60 dark:border-borderDark/60 pb-3">
-                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Event 1</span>
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarEvent1">Event 1</span>
                     <span id="sidebar-event1-name" class="font-semibold mt-0.5 text-sm">-</span>
                     <div id="sidebar-event1-partner-row" class="mt-2 text-xs hidden">
-                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block">Partner Details:</span>
+                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarPartner">Partner Details:</span>
                         <div class="bg-white dark:bg-surfaceDark p-2 border border-borderLight dark:border-borderDark rounded font-mono text-[11px] whitespace-pre-line text-textPrimaryLight dark:text-textPrimaryDark mt-1" id="sidebar-event1-partner"></div>
                     </div>
                 </div>
 
                 <!-- Event 2 -->
                 <div id="sidebar-event2-container" class="flex flex-col">
-                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block">Event 2</span>
+                    <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarEvent2">Event 2</span>
                     <span id="sidebar-event2-name" class="font-semibold mt-0.5 text-sm">-</span>
                     <div id="sidebar-event2-partner-row" class="mt-2 text-xs hidden">
-                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block">Partner Details:</span>
+                        <span class="text-textSecondaryLight dark:text-textSecondaryDark block" data-i18n="sidebarPartner">Partner Details:</span>
                         <div class="bg-white dark:bg-surfaceDark p-2 border border-borderLight dark:border-borderDark rounded font-mono text-[11px] whitespace-pre-line text-textPrimaryLight dark:text-textPrimaryDark mt-1" id="sidebar-event2-partner"></div>
                     </div>
                 </div>
@@ -420,7 +428,7 @@
             <!-- Notes Card -->
             <div class="bg-bgLight dark:bg-bgDark border border-borderLight dark:border-borderDark rounded-lg p-4 flex flex-col gap-2">
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-textSecondaryLight dark:text-textSecondaryDark flex items-center gap-1.5">
-                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Registration Notes
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> <span data-i18n="sidebarNotes">Registration Notes</span>
                 </h3>
                 <p id="sidebar-notes" class="text-sm italic text-textSecondaryLight dark:text-textSecondaryDark">-</p>
             </div>
@@ -430,10 +438,10 @@
         <!-- Sidebar Footer Action -->
         <div class="p-6 border-t border-borderLight dark:border-borderDark bg-bgLight/20 dark:bg-bgDark/20 flex gap-4">
             <div class="flex flex-col justify-center">
-                <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark">Total Registration Fee</span>
+                <span class="text-xs text-textSecondaryLight dark:text-textSecondaryDark" data-i18n="sidebarTotalFee">Total Registration Fee</span>
                 <span id="sidebar-fee" class="text-xl font-bold font-mono text-secondary">-</span>
             </div>
-            <button onclick="closeSidebar()" class="ml-auto bg-primary hover:bg-primary-hover text-white rounded-md px-5 py-2 font-medium text-sm transition-all duration-200">
+            <button onclick="closeSidebar()" class="ml-auto bg-primary hover:bg-primary-hover text-white rounded-md px-5 py-2 font-medium text-sm transition-all duration-200" data-i18n="sidebarClose">
                 Close Details
             </button>
         </div>
@@ -441,6 +449,123 @@
 
     <!-- Script Block for Dashboard Logic -->
     <script>
+        // Translations Object
+        const i18n = {
+            en: {
+                title: "Pattaya Sawasdee CUP 2026",
+                subTitle: "Badminton",
+                connecting: "Connecting...",
+                live: "Live",
+                totalReg: "Total Registrations",
+                estRev: "Estimated Revenue",
+                countries: "Countries Represented",
+                genderDist: "Gender Distribution",
+                male: "Male",
+                female: "Female",
+                nations: "Nations",
+                searchPlaceholder: "Search Name, ID, Email...",
+                allNations: "All Nationalities",
+                allDivisions: "All Divisions",
+                exportCsv: "Export CSV",
+                loadingPlayers: "Loading players...",
+                noPlayers: "No matching registrations found.",
+                showing: "Showing",
+                of: "of",
+                entries: "entries",
+                page: "Page",
+                pageOf: "of",
+                colTag: "Tag ID",
+                colName: "Full Name",
+                colNation: "Nationality",
+                colEvent1: "Event 1 Name",
+                colEvent2: "Event 2 Name",
+                colFee: "Total Fee",
+                colStatus: "Status",
+                statusPaid: "Paid",
+                statusPending: "Pending",
+                sidebarTitle: "Player Details",
+                sidebarProfile: "Profile & Contacts",
+                sidebarGender: "Gender",
+                sidebarBirth: "Birth Year",
+                sidebarNation: "Nationality",
+                sidebarTshirt: "T-Shirt Size",
+                sidebarPassport: "ID / Passport No.",
+                sidebarEmail: "Email Address",
+                sidebarPhone: "Phone Number",
+                sidebarEvents: "Tournament Registrations",
+                sidebarEvent1: "Event 1",
+                sidebarEvent2: "Event 2",
+                sidebarPartner: "Partner Details:",
+                sidebarNotes: "Registration Notes",
+                sidebarNoNotes: "No notes provided by registrant.",
+                sidebarTotalFee: "Total Registration Fee",
+                sidebarClose: "Close Details",
+                chartNationalities: "Player Nationalities",
+                chartEvents: "Event Popularity",
+                chartTshirts: "T-Shirt Sizes",
+                chartAge: "Age Distribution (Birth Year)",
+                footerText: "&copy; Pattaya International Badminton Sawasdee CUP 2026. Design system \"Genesis\".",
+                footerRealtime: "Real-time connected via Google Sheets."
+            },
+            th: {
+                title: "Pattaya Sawasdee CUP 2026",
+                subTitle: "แบดมินตัน",
+                connecting: "กำลังเชื่อมต่อ...",
+                live: "สด",
+                totalReg: "จำนวนผู้สมัครทั้งหมด",
+                estRev: "รายได้ประมาณการ",
+                countries: "ประเทศที่เข้าร่วม",
+                genderDist: "สัดส่วนเพศนักกีฬา",
+                male: "ชาย",
+                female: "หญิง",
+                nations: "ประเทศ",
+                searchPlaceholder: "ค้นหาชื่อ, Tag ID, อีเมล...",
+                allNations: "ทุกสัญชาติ",
+                allDivisions: "ทุกประเภทการแข่ง",
+                exportCsv: "ส่งออก CSV",
+                loadingPlayers: "กำลังโหลดข้อมูลนักกีฬา...",
+                noPlayers: "ไม่พบข้อมูลผู้สมัครที่ค้นหา",
+                showing: "แสดง",
+                of: "จากทั้งหมด",
+                entries: "รายการ",
+                page: "หน้า",
+                pageOf: "จากทั้งหมด",
+                colTag: "รหัสผู้สมัคร",
+                colName: "ชื่อ-นามสกุล",
+                colNation: "สัญชาติ",
+                colEvent1: "รุ่นแข่งขัน 1",
+                colEvent2: "รุ่นแข่งขัน 2",
+                colFee: "ค่าสมัคร",
+                colStatus: "สถานะ",
+                statusPaid: "ชำระแล้ว",
+                statusPending: "ค้างชำระ",
+                sidebarTitle: "รายละเอียดผู้สมัคร",
+                sidebarProfile: "ประวัติและการติดต่อ",
+                sidebarGender: "เพศ",
+                sidebarBirth: "ปีเกิด",
+                sidebarNation: "สัญชาติ",
+                sidebarTshirt: "ขนาดเสื้อแข่ง",
+                sidebarPassport: "เลขบัตร/พาสปอร์ต",
+                sidebarEmail: "ที่อยู่อีเมล",
+                sidebarPhone: "เบอร์โทรศัพท์",
+                sidebarEvents: "รุ่นการแข่งขันที่สมัคร",
+                sidebarEvent1: "รุ่นการแข่งขัน 1",
+                sidebarEvent2: "รุ่นการแข่งขัน 2",
+                sidebarPartner: "ข้อมูลคู่แข่งขัน:",
+                sidebarNotes: "บันทึกเพิ่มเติม",
+                sidebarNoNotes: "ไม่มีบันทึกเพิ่มเติมจากผู้สมัคร",
+                sidebarTotalFee: "ค่าสมัครรวมทั้งหมด",
+                sidebarClose: "ปิดหน้านี้",
+                chartNationalities: "สัญชาติของนักกีฬา",
+                chartEvents: "ความนิยมของรุ่นการแข่งขัน",
+                chartTshirts: "ขนาดเสื้อแข่งกีฬา",
+                chartAge: "ช่วงอายุของนักกีฬา (ปีเกิด)",
+                footerText: "&copy; Pattaya International Badminton Sawasdee CUP 2026. ระบบดีไซน์ \"Genesis\"",
+                footerRealtime: "เชื่อมต่อข้อมูลสดกับ Google Sheets"
+            }
+        };
+
+        let currentLang = 'th'; // Default to Thai as requested
         let rawData = [];
         let filteredData = [];
         let itemsPerPage = 15;
@@ -458,8 +583,6 @@
         // On Load
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            initCharts();
-            fetchData();
             
             // Check saved theme
             if (localStorage.getItem('theme') === 'dark' || 
@@ -470,6 +593,17 @@
                 document.documentElement.classList.remove('dark');
                 document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
             }
+
+            // Check saved language
+            const savedLang = localStorage.getItem('language');
+            if (savedLang && (savedLang === 'en' || savedLang === 'th')) {
+                currentLang = savedLang;
+            }
+            updateLanguageUI();
+
+            initCharts();
+            fetchData();
+            
             lucide.createIcons();
 
             // Resize charts on window resize
@@ -494,6 +628,37 @@
                 updateChartThemes(true);
             }
             lucide.createIcons();
+        }
+
+        // Toggle Language
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'th' : 'en';
+            localStorage.setItem('language', currentLang);
+            updateLanguageUI();
+            applyFilters(); // Apply filters will re-render charts and tables with the correct translations
+        }
+
+        function updateLanguageUI() {
+            const langLabel = document.getElementById('lang-label');
+            langLabel.textContent = currentLang === 'en' ? 'TH' : 'EN'; // Label shows option to switch to the other lang
+
+            // Set document title
+            document.title = currentLang === 'en' ? "Pattaya International Badminton Sawasdee CUP 2026 Dashboard" : "Pattaya International Badminton Sawasdee CUP 2026 แดชบอร์ดผู้สมัคร";
+            document.getElementById('nav-title').textContent = currentLang === 'en' ? "Pattaya Sawasdee CUP 2026" : "พัทยา สวัสดีคัพ 2026";
+
+            // Translate elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.textContent = i18n[currentLang][key];
+                }
+            });
+
+            // Input placeholders translate
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.placeholder = i18n[currentLang].searchPlaceholder;
+            }
         }
 
         // Initialize ECharts with genesis theme settings
@@ -601,12 +766,12 @@
             const btnRefresh = document.getElementById('btn-refresh');
 
             syncDot.className = "w-2 h-2 rounded-full bg-warning animate-pulse";
-            syncText.textContent = "Syncing Sheets...";
+            syncText.textContent = i18n[currentLang].connecting;
             btnRefresh.classList.add('animate-spin');
 
             const sheetUrl = "https://docs.google.com/spreadsheets/d/12ktjlyh9Mo6t1DFA8zVuuzL5YJe3bnnM3tj_3S7qDe4/export?format=csv&gid=256681292";
             let csvText = "";
-            let source = "Google Sheets (Live)";
+            let source = currentLang === 'en' ? "Google Sheets (Live)" : "กูเกิลชีต (สด)";
 
             try {
                 const response = await fetch(sheetUrl);
@@ -618,16 +783,16 @@
                     const localResponse = await fetch("./sheet_data.csv");
                     if (!localResponse.ok) throw new Error("Local fallback returned error " + localResponse.status);
                     csvText = await localResponse.text();
-                    source = "Local CSV (Fallback)";
+                    source = currentLang === 'en' ? "Local CSV (Fallback)" : "ไฟล์สำรอง CSV ในเครื่อง";
                 } catch (err) {
                     console.error("All fetch sources failed", err);
                     syncDot.className = "w-2 h-2 rounded-full bg-error";
-                    syncText.textContent = "Connection Failed";
+                    syncText.textContent = currentLang === 'en' ? "Connection Failed" : "การเชื่อมต่อล้มเหลว";
                     btnRefresh.classList.remove('animate-spin');
                     document.getElementById('table-body').innerHTML = `
                         <tr>
                             <td colspan="7" class="py-8 text-center text-error font-medium">
-                                <i data-lucide="alert-triangle" class="w-5 h-5 inline-block mr-1 align-middle"></i> Failed to retrieve registration data. Check connection.
+                                <i data-lucide="alert-triangle" class="w-5 h-5 inline-block mr-1 align-middle"></i> ${currentLang === 'en' ? 'Failed to retrieve registration data. Check connection.' : 'ไม่สามารถเชื่อมต่อข้อมูลผู้สมัครได้ กรุณาตรวจสอบอินเทอร์เน็ต'}
                             </td>
                         </tr>
                     `;
@@ -649,13 +814,11 @@
 
             filteredData = [...rawData];
 
-            // Update UI elements
             syncDot.className = "w-2 h-2 rounded-full bg-success";
             const now = new Date();
-            syncText.textContent = `${source} - Last Sync: ${now.toLocaleTimeString()}`;
+            syncText.textContent = `${source} - ${now.toLocaleTimeString()}`;
             btnRefresh.classList.remove('animate-spin');
 
-            // Populate filters and update table
             populateFilterOptions();
             updateKPIs();
             renderCharts();
@@ -666,7 +829,7 @@
         function populateFilterOptions() {
             const natSelect = document.getElementById('filter-nationality');
             const currentSelected = natSelect.value;
-            natSelect.innerHTML = '<option value="">All Nationalities</option>';
+            natSelect.innerHTML = `<option value="">${i18n[currentLang].allNations}</option>`;
             
             const nationalities = [...new Set(rawData.map(i => i.NationalityClean))].filter(n => n).sort();
             nationalities.forEach(n => {
@@ -811,7 +974,7 @@
                     textStyle: { color: textStyle.color }
                 },
                 series: [{
-                    name: 'T-Shirt Size',
+                    name: currentLang === 'en' ? 'T-Shirt Size' : 'ขนาดเสื้อแข่ง',
                     type: 'pie',
                     radius: ['40%', '70%'],
                     avoidLabelOverlap: false,
@@ -916,7 +1079,7 @@
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="7" class="py-8 text-center text-textSecondaryLight dark:text-textSecondaryDark font-medium">
-                            <i data-lucide="info" class="w-5 h-5 inline-block mr-1 align-middle"></i> No matching registrations found.
+                            <i data-lucide="info" class="w-5 h-5 inline-block mr-1 align-middle"></i> ${i18n[currentLang].noPlayers}
                         </td>
                     </tr>
                 `;
@@ -936,9 +1099,9 @@
                 const status = (item.Status || 'Pending').trim().toUpperCase();
                 let statusBadge = '';
                 if (status === 'PAID' || status === 'SUCCESS' || status === 'CONFIRMED') {
-                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">Paid</span>';
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">${i18n[currentLang].statusPaid}</span>`;
                 } else if (status === 'PENDING') {
-                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/20">Pending</span>';
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/20">${i18n[currentLang].statusPending}</span>`;
                 } else {
                     statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error/15 text-error border border-error/20">${status}</span>`;
                 }
@@ -997,7 +1160,9 @@
             emailLink.href = item.Email ? `mailto:${item.Email}` : '#';
             
             document.getElementById('sidebar-phone').textContent = item.Phone || '-';
-            document.getElementById('sidebar-notes').textContent = item.Notes || 'No notes provided by registrant.';
+            
+            // Notes i18n
+            document.getElementById('sidebar-notes').textContent = item.Notes || i18n[currentLang].sidebarNoNotes;
             document.getElementById('sidebar-fee').textContent = item.Total_Fee || '-';
 
             // Event 1
