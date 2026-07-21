@@ -165,8 +165,8 @@
                 </div>
                 <div class="flex items-baseline gap-2 mt-2">
                     <span id="kpi-total" class="text-3xl font-bold tracking-tight display-font">-</span>
-                    <span class="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i> <span data-i18n="live">Live</span>
+                    <span class="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-0.5" title="Duplicates automatically merged">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> <span data-i18n="dedupBadge">Deduplicated</span>
                     </span>
                 </div>
             </div>
@@ -482,6 +482,7 @@
                 connecting: "Connecting...",
                 live: "Live",
                 totalReg: "Total Registrations",
+                dedupBadge: "Deduplicated",
                 paidAmount: "Paid Amount",
                 estRev: "Estimated Total",
                 countries: "Countries Represented",
@@ -540,6 +541,7 @@
                 connecting: "กำลังเชื่อมต่อ...",
                 live: "สด",
                 totalReg: "จำนวนผู้สมัครทั้งหมด",
+                dedupBadge: "คัดแยกรายการซ้ำแล้ว",
                 paidAmount: "ยอดเงินที่ชำระแล้ว",
                 estRev: "ยอดประมาณการรวม",
                 countries: "ประเทศที่เข้าร่วม",
@@ -827,10 +829,10 @@
                 }
             }
 
-            rawData = parseCSV(csvText);
+            const parsedRaw = parseCSV(csvText);
             
             // Clean up properties and normalize types
-            rawData.forEach((item, idx) => {
+            parsedRaw.forEach((item, idx) => {
                 item._id = item.Tag_ID || `TEMP-${idx}`;
                 item.parsedFee = parseFee(item.Total_Fee);
                 item.event1 = parseEventDetails(item.Event_1_Name);
@@ -839,6 +841,37 @@
                 item.StatusClean = (item.Status || 'Pending').trim().toUpperCase();
             });
 
+            // Deduplication Logic: Deduplicate entries with exact same Name + same Events
+            // Priority: Keep Paid entries over Pending entries
+            const dedupMap = new Map();
+            parsedRaw.forEach(item => {
+                const name = (item.Full_Name || '').trim().toLowerCase();
+                const ev1 = (item.Event_1_Name || '').trim().toLowerCase();
+                const ev2 = (item.Event_2_Name || '').trim().toLowerCase();
+                const eventsKey = [ev1, ev2].sort().join('|');
+                const key = `${name}|${eventsKey}`;
+
+                const isPaid = item.StatusClean === 'PAID' || item.StatusClean === 'SUCCESS' || item.StatusClean === 'CONFIRMED';
+
+                if (!dedupMap.has(key)) {
+                    dedupMap.set(key, item);
+                } else {
+                    const existing = dedupMap.get(key);
+                    const existingIsPaid = existing.StatusClean === 'PAID' || existing.StatusClean === 'SUCCESS' || existing.StatusClean === 'CONFIRMED';
+
+                    // Priority 1: Keep Paid over Pending
+                    if (isPaid && !existingIsPaid) {
+                        dedupMap.set(key, item);
+                    } else if (isPaid === existingIsPaid) {
+                        // Priority 2: Keep non-zero fee over zero fee
+                        if (item.parsedFee.amount > 0 && existing.parsedFee.amount === 0) {
+                            dedupMap.set(key, item);
+                        }
+                    }
+                }
+            });
+
+            rawData = Array.from(dedupMap.values());
             filteredData = [...rawData];
 
             syncDot.className = "w-2 h-2 rounded-full bg-success";
@@ -1087,7 +1120,6 @@
                     email.includes(searchQuery) ||
                     phone.includes(searchQuery);
 
-                // Status filter
                 let matchStatus = true;
                 if (statusFilter === 'PAID') {
                     matchStatus = item.StatusClean === 'PAID' || item.StatusClean === 'SUCCESS' || item.StatusClean === 'CONFIRMED';
