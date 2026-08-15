@@ -7,13 +7,16 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
 <style>
 :root{color-scheme:light;--bg:#f6f7f9;--card:#fff;--line:#e6e8ec;--ink:#16181d;--muted:#6b7280;
- --blue:#2563eb;--green:#16a34a;--amber:#f59e0b;--indigo:#6366f1;--violet:#7c3aed;--teal:#0d9488;--pink:#db2777;--slate:#94a3b8}
+ --blue:#2563eb;--green:#16a34a;--amber:#f59e0b;--indigo:#6366f1;--violet:#7c3aed;--teal:#0d9488;--pink:#db2777;--slate:#94a3b8;--red:#dc2626}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;
  font-family:"Noto Sans Thai","Sarabun",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5}
 .wrap{max-width:900px;margin:0 auto;padding:16px 12px 48px}
 h1{font-size:18px;margin:0 0 2px;letter-spacing:-.2px}
-.sub{color:var(--muted);font-size:11.5px;margin-bottom:16px}
+.sub{color:var(--muted);font-size:11.5px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rl{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 11px;font-size:11.5px;
+ font-family:inherit;color:#475569;cursor:pointer}
+.rl:active{background:#eef1f6}
 h2{font-size:14px;margin:24px 0 9px;display:flex;align-items:center;gap:7px}
 h2::before{content:"";width:3px;height:14px;background:var(--blue);border-radius:2px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
@@ -35,7 +38,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{padding:6px 7px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
 th{background:#fafbfc;font-weight:600;color:var(--muted);font-size:10.5px;text-transform:uppercase;
- letter-spacing:.3px;position:sticky;top:0}
+ letter-spacing:.3px;position:sticky;top:0;cursor:pointer;user-select:none}
 .tblwrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:11px;background:#fff}
 .badge{display:inline-block;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:600}
 .b-paid{background:#dcfce7;color:#15803d}.b-pend{background:#fef3c7;color:#b45309}.b-team{background:#e0e7ff;color:#4338ca}
@@ -43,342 +46,244 @@ th{background:#fafbfc;font-weight:600;color:var(--muted);font-size:10.5px;text-t
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:7px}
 .legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px}
 .foot{margin-top:24px;color:var(--muted);font-size:10.5px;text-align:center;line-height:1.6}
+#status{padding:48px 16px;text-align:center;color:var(--muted)}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 14px;border-radius:10px;
+ font-size:12.5px;text-align:left;max-width:520px;margin:0 auto}
+.note-line{font-size:10.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+@media(max-width:560px){.wrap{padding:14px 11px 40px}h1{font-size:16.5px}.kpi .val{font-size:20px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>SAWASDEE CUP 2026</h1>
-  <div class="sub">สรุปยอดสมัคร · ข้อมูล ณ 13 ส.ค. 2026 14:14 (snapshot — ไม่อัปเดตอัตโนมัติ)</div>
+  <div id="status">กำลังโหลดข้อมูลจาก Google Sheet…</div>
+  <div id="app" style="display:none">
+    <h1>SAWASDEE CUP 2026</h1>
+    <div class="sub"><span id="meta"></span><button class="rl" id="reload">รีเฟรช</button></div>
 
-  <div class="kpis" id="kpis"></div>
+    <div class="kpis" id="kpis"></div>
 
-  <h2>สถานะการชำระเงิน</h2>
-  <div class="stack two">
-    <div class="card"><div class="ctitle">สถานะรายคน (จาก 96 ใบสมัครที่มีค่าธรรมเนียม)</div>
-      <div class="box" style="height:200px"><canvas id="cPay"></canvas></div></div>
-    <div class="card"><div class="ctitle">ยอดค่าสมัครแยกสกุลเงิน</div><div id="money"></div></div>
-  </div>
+    <h2>สถานะการชำระเงิน</h2>
+    <div class="stack two">
+      <div class="card"><div class="ctitle">สถานะผู้สมัคร</div>
+        <div class="box" style="height:210px"><canvas id="cPay"></canvas></div></div>
+      <div class="card"><div class="ctitle">ยอดค่าสมัครแยกสกุลเงิน</div><div id="money"></div></div>
+    </div>
 
-  <h2>ผู้สมัครจากทีมชีต (แยกออกมา)</h2>
-  <div class="kpis" id="tkpis"></div>
-  <div style="height:9px"></div>
-  <div class="stack two">
-    <div class="card"><div class="ctitle">slots จากทีม — แยกตามประเภท</div>
-      <div class="box" style="height:220px"><canvas id="cTeamCat"></canvas></div></div>
-    <div class="card"><div class="ctitle">รายการที่มีผู้เล่นจากทีม</div>
-      <div class="tblwrap" style="max-height:220px"><table id="tTeam"><thead></thead><tbody></tbody></table></div></div>
-  </div>
+    <h2>ผู้สมัครจากทีม</h2>
+    <div class="kpis" id="tkpis"></div>
+    <div style="height:9px"></div>
+    <div class="stack two">
+      <div class="card"><div class="ctitle">slots จากทีม — แยกตามประเภท</div>
+        <div class="box" style="height:220px"><canvas id="cTeamCat"></canvas></div></div>
+      <div class="card"><div class="ctitle">รายการที่มีผู้เล่นจากทีม</div>
+        <div class="tblwrap" style="max-height:220px"><table id="tTeam"><thead></thead><tbody></tbody></table></div></div>
+    </div>
 
-  <h2>รายการแข่งขัน</h2>
-  <div class="filters" id="fCat"></div>
-  <div class="card"><div class="ctitle">จำนวนเข้าแข่งแยกตามรายการ</div>
-    <div class="box" id="evBox"><canvas id="cEvent"></canvas></div>
-    <div class="legend"><span><i style="background:#16a34a"></i>จ่ายแล้ว</span>
-      <span><i style="background:#f59e0b"></i>รอจ่าย</span>
-      <span><i style="background:#6366f1"></i>จากทีม</span></div>
-  </div>
-  <div style="height:9px"></div>
-  <div class="stack two">
-    <div class="card"><div class="ctitle">ตามประเภท</div><div class="box" style="height:210px"><canvas id="cType"></canvas></div></div>
-    <div class="card"><div class="ctitle">ตามกลุ่มอายุ / คลาส</div><div class="box" style="height:250px"><canvas id="cGrp"></canvas></div></div>
-  </div>
-  <div style="height:9px"></div>
-  <div class="tblwrap"><table id="tEvent"><thead></thead><tbody></tbody></table></div>
+    <h2>รายการแข่งขัน</h2>
+    <div class="filters" id="fCat"></div>
+    <div class="card"><div class="ctitle">จำนวนเข้าแข่งแยกตามรายการ</div>
+      <div class="box" id="evBox"><canvas id="cEvent"></canvas></div>
+      <div class="legend"><span><i style="background:#16a34a"></i>จ่ายแล้ว</span>
+        <span><i style="background:#f59e0b"></i>รอจ่าย</span>
+        <span><i style="background:#6366f1"></i>ทีม</span></div>
+    </div>
+    <div style="height:9px"></div>
+    <div class="stack two">
+      <div class="card"><div class="ctitle">ตามประเภท</div><div class="box" style="height:210px"><canvas id="cType"></canvas></div></div>
+      <div class="card"><div class="ctitle">ตามกลุ่มอายุ / คลาส</div><div class="box" style="height:250px"><canvas id="cGrp"></canvas></div></div>
+    </div>
+    <div style="height:9px"></div>
+    <div class="tblwrap"><table id="tEvent"><thead></thead><tbody></tbody></table></div>
 
-  <h2>ข้อมูลผู้เล่น (128 ราย ที่กรอกข้อมูลครบ)</h2>
-  <div class="stack two">
-    <div class="card"><div class="ctitle">ประเทศ</div><div class="box" style="height:300px"><canvas id="cCountry"></canvas></div></div>
-    <div class="card"><div class="ctitle">การกระจายอายุ</div><div class="box" style="height:230px"><canvas id="cAge"></canvas></div></div>
-  </div>
-  <div style="height:9px"></div>
-  <div class="stack two">
-    <div class="card"><div class="ctitle">เพศ</div><div class="box" style="height:200px"><canvas id="cGender"></canvas></div></div>
-    <div class="card"><div class="ctitle">ไซส์เสื้อ</div><div class="box" style="height:200px"><canvas id="cShirt"></canvas></div></div>
-  </div>
+    <h2>ข้อมูลผู้เล่น</h2>
+    <div class="filters" id="fStatus"></div>
+    <div class="stack two">
+      <div class="card"><div class="ctitle">ประเทศ</div><div class="box" style="height:300px"><canvas id="cCountry"></canvas></div></div>
+      <div class="card"><div class="ctitle">การกระจายอายุ</div><div class="box" style="height:230px"><canvas id="cAge"></canvas></div></div>
+    </div>
+    <div style="height:9px"></div>
+    <div class="stack two">
+      <div class="card"><div class="ctitle">เพศ</div><div class="box" style="height:200px"><canvas id="cGender"></canvas></div></div>
+      <div class="card"><div class="ctitle">ไซส์เสื้อ</div><div class="box" style="height:200px"><canvas id="cShirt"></canvas></div></div>
+    </div>
+    <div style="height:9px"></div>
+    <div class="card"><div class="ctitle">ยอดสมัครสะสมรายวัน</div>
+      <div class="box" style="height:210px"><canvas id="cTime"></canvas></div>
+      <div class="note-line">นับเฉพาะรายการที่มีวันที่สมัคร (ผู้สมัครจากทีมไม่มีวันที่บันทึกไว้)</div></div>
 
-  <div class="foot">
-    ที่มา: Google Sheet “SAWASDEE 2026 REGISTER by Event (AUTO)”<br>
-    ไฟล์นี้เป็น snapshot ณ 13 ส.ค. 2026 · ไม่แสดงข้อมูลส่วนบุคคล
+    <div class="foot" id="foot"></div>
   </div>
 </div>
 
 <script>
 (function(){
 "use strict";
-var EV=`(MS) 20-24|S|10|0|10|0
-(MS) 25-29|S|2|0|2|0
-(MS) 30-34|S|10|0|10|0
-(MS) 35-39|S|2|0|2|0
-(MS) 40-44|S|5|0|4|1
-(MS) 45-49|S|4|1|2|1
-(MS) 50-54|S|3|1|2|0
-(MS) 55-59|S|8|2|6|0
-(MS) 60-64|S|2|2|0|0
-(MS) 65-69|S|4|0|1|3
-(MS) 70-74|S|3|0|1|2
-(MS) PRO 15-34|S|3|1|2|0
-(MS) PRO 20-34|S|6|0|6|0
-(MS) PRO 35+|S|2|1|1|0
-(WS) 25-29|S|2|1|1|0
-(WS) 35-39|S|2|0|2|0
-(WS) 40-44|S|1|0|1|0
-(WS) 45-49|S|1|0|0|1
-(WS) 50-54|S|1|1|0|0
-(WS) 55-59|S|3|1|2|0
-(WS) 65-69|S|1|0|1|0
-(MD) 20-24|D|1|0|1|0
-(MD) 30-34|D|3|1|2|0
-(MD) 35-39|D|2|0|2|0
-(MD) 40-44|D|4|1|2|1
-(MD) 45-49|D|2|0|0|2
-(MD) 50-54|D|5|1|1|3
-(MD) 55-59|D|6|0|4|2
-(MD) 60-64|D|5|1|0|4
-(MD) 65-69|D|2|0|0|2
-(MD) 70-74|D|1|0|0|1
-(MD) PRO 15-34|D|3|0|3|0
-(MD) PRO 20-34|D|1|0|1|0
-(MD) CA100|D|7|0|2|5
-(MD) CA110|D|6|0|4|2
-(MD) CA120|D|6|1|1|4
-(MD) CA130|D|4|0|0|4
-(MD) CA140|D|1|0|0|1
-(WD) 25-29|D|3|0|3|0
-(WD) 35-39|D|1|0|1|0
-(WD) 40-44|D|2|0|1|1
-(WD) 45-49|D|2|1|0|1
-(WD) 50-54|D|3|2|0|1
-(WD) 55-59|D|1|0|1|0
-(WD) 60-64|D|1|0|0|1
-(WD) 65-69|D|1|0|1|0
-(WD) 70-74|D|1|0|0|1
-(WD) CA100|D|3|2|0|1
-(WD) CA110|D|2|0|1|1
-(WD) CA140|D|2|0|1|1
-(XD) 20-24|D|3|1|2|0
-(XD) 25-29|D|2|0|2|0
-(XD) 30-34|D|1|0|1|0
-(XD) 35-39|D|3|0|3|0
-(XD) 40-44|D|4|0|2|2
-(XD) 45-49|D|1|0|1|0
-(XD) 50-54|D|1|1|0|0
-(XD) 55-59|D|5|1|3|1
-(XD) 60-64|D|2|0|0|2
-(XD) 70-74|D|1|0|0|1
-(XD) PRO 15-34|D|1|0|1|0
-(XD) CA100|D|4|0|4|0
-(XD) CA110|D|6|2|3|1
-(HW) 40-44|D|1|0|1|0
-(HW) 50-54|D|1|0|0|1
-(HW) 65-69|D|2|0|0|2
-(HW) 70-74|D|1|0|0|1
-(3P) 200|D|3|0|0|3
-(3P) 220|D|1|0|0|1`;
-
-var PL=`M|THAILAND|32|M
-M|THAILAND|23|2XL
-M|THAILAND|55|L
-M|MALAYSIA|20|XL
-M|THAILAND|30|M
-F|JAPAN|44|M
-F|JAPAN|50|XS
-F|HONG KONG|53|S
-M|THAILAND|22|L
-M|HONG KONG|66|L
-F|AUSTRALIA|56|S
-M|MALAYSIA|22|L
-M|MALAYSIA|23|L
-F|SINGAPORE|54|XS
-M|OTHER|63|2XL
-M|MALAYSIA|37|2XL
-F|OTHER|67|M
-M|THAILAND|31|M
-F|JAPAN|28|S
-M|THAILAND|42|L
-M|OTHER|51|2XL
-M|THAILAND|20|XL
-F|SINGAPORE|59|XS
-M|MALAYSIA|56|L
-M|SINGAPORE|50|L
-F|OTHER|56|XL
-M|SINGAPORE|57|XL
-M|OTHER|56|3XL
-M|OTHER|60|3XL
-M|UK|58|XL
-F|THAILAND|36|M
-M|THAILAND|33|L
-M|OTHER|45|L
-M|THAILAND|56|XL
-M|MALAYSIA|44|L
-M|THAILAND|56|XL
-M|MALAYSIA|23|L
-M|JAPAN|47|M
-M|SINGAPORE|50|L
-F|MALAYSIA|58|S
-M|THAILAND|34|L
-M|HONG KONG|43|2XL
-F|HONG KONG|39|M
-M|CHINA|64|L
-M|THAILAND|54|XL
-F|SINGAPORE|41|S
-M|THAILAND|23|L
-M|THAILAND|74|M
-F|RUSSIAN FEDERATION|54|M
-M|SINGAPORE|57|L
-M|SINGAPORE|58|L
-M|MALAYSIA|59|XL
-M|THAILAND|29|2XL
-M|SINGAPORE|35|L
-M|SINGAPORE|54|L
-M|THAILAND|34|2XL
-F|THAILAND|47|M
-F|MALAYSIA|36|S
-M|MALAYSIA|43|M
-F|INDIA|37|S
-F|JAPAN|28|S
-M|SINGAPORE|67|2XL
-M|INDIA|26|M
-M|THAILAND|55|2XL
-M|THAILAND|55|L
-M|INDIA|26|M
-F|THAILAND|26|L
-M|SINGAPORE|18|XL
-F|THAILAND|61|L
-M|THAILAND|30|L
-M|THAILAND|27|M
-M|CHINA|40|2XL
-M|THAILAND|32|3XL
-F|JAPAN|29|S
-M|THAILAND|55|M
-M|HONG KONG|49|M
-M|HONG KONG|49|L
-M|THAILAND|41|XL
-M|INDIA|34|M
-M|JAPAN|46|2XL
-F|JAPAN|40|S
-M|MALAYSIA|35|XL
-M|UK|48|M
-F|SINGAPORE|57|M
-M|MALAYSIA|34|L
-M|SRI LANKA|31|XL
-F|SINGAPORE|57|M
-F|SINGAPORE|57|M
-M|MALAYSIA|21|XL
-M|THAILAND|57|2XL
-M|MALAYSIA|28|2XL
-M|MALAYSIA|20|M
-M|MALAYSIA|19|L
-M|SINGAPORE|55|XL
-M|SRI LANKA|32|XL
-F|THAILAND|68|S
-M|SERBIA|44|L
-M|THAILAND|34|L
-F|HONG KONG|53|XS
-M|MALAYSIA|64|L
-F|AUSTRALIA|50|L
-M|INDONESIA|60|M
-F|MALAYSIA|60|M
-F|HONG KONG|62|M
-M|AUSTRALIA|62|L
-M|AUSTRALIA|67|L
-M|INDONESIA|74|3XL
-M|AUSTRALIA|71|L
-M|INDONESIA|58|L
-M|AUSTRALIA|68|L
-F|NEW ZEALAND|73|M
-F|AUSTRALIA|70|M
-M|AUSTRALIA|74|L
-M|AUSTRALIA|66|M
-M|HONG KONG|66|L
-M|HONG KONG|65|L
-F|SINGAPORE|43|S
-M|SINGAPORE|51|L
-M|SINGAPORE|54|XL
-M|SINGAPORE|73|L
-M|SINGAPORE|49|L
-M|SINGAPORE|50|L
-M|SINGAPORE|44|L
-M|SINGAPORE|42|M
-M|SINGAPORE|62|L
-M|SINGAPORE|53|XL
-M|SINGAPORE|65|XL
-F|SINGAPORE|42|M`;
-
-var MONEY={THB:{paid:3000,pend:16000,n:14},USD:{paid:810,pend:3450,n:82}};
-var PAY={paid:15,pend:81};
-var K={regs:141,indiv:99,team:42,dupes:74,tabs:69,issues:44,sPaid:26,sPend:111,sTeam:62};
-var CATLABEL={MS:"MS ชายเดี่ยว",WS:"WS หญิงเดี่ยว",MD:"MD ชายคู่",WD:"WD หญิงคู่",XD:"XD คู่ผสม",HW:"HW คู่สามีภรรยา","3P":"3P"};
+var CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTp7l-OeoE21UJd9gbhtJ4DdLbr0jS5aw-07JtrhEPU1q76l1zC5eIrZTPqz9HvXnXBnJ-REqfGB04j/pub?gid=1197797533&single=true&output=csv";
 var CATORDER=["MS","WS","MD","WD","XD","HW","3P"];
-var C={green:"#16a34a",amber:"#f59e0b",indigo:"#6366f1",blue:"#2563eb",violet:"#7c3aed",teal:"#0d9488",pink:"#db2777",slate:"#94a3b8",red:"#dc2626"};
+var CATLABEL={MS:"MS ชายเดี่ยว",WS:"WS หญิงเดี่ยว",MD:"MD ชายคู่",WD:"WD หญิงคู่",XD:"XD คู่ผสม",HW:"HW คู่สามีภรรยา","3P":"3P"};
+var ST={Paid:"จ่ายแล้ว",Pending:"รอจ่าย",Team:"ทีม"};
+var C={green:"#16a34a",amber:"#f59e0b",indigo:"#6366f1",blue:"#2563eb",violet:"#7c3aed",
+       teal:"#0d9488",pink:"#db2777",slate:"#94a3b8",red:"#dc2626"};
+var charts={}, players=[], events=[], cat="ALL", stFilter="ALL", sortKey="entries", sortDir=-1;
 
-var events=EV.split("\n").map(function(l){
-  var p=l.split("|"), m=/^\(([A-Z0-9]{2})\)\s*(.+)$/.exec(p[0]);
-  return {event:p[0],cat:m?m[1]:"",grp:m?m[2]:"",type:p[1]==="S"?"เดี่ยว":"คู่",
-          entries:+p[2],paid:+p[3],pending:+p[4],teamq:+p[5]};
-});
-var players=PL.split("\n").map(function(l){
-  var p=l.split("|"); return {gender:p[0],country:p[1],age:+p[2],shirt:p[3]};
-});
-var cat="ALL", sortKey="entries", sortDir=-1, charts={};
-function evF(){ return cat==="ALL"?events:events.filter(function(e){return e.cat===cat;}); }
+function lsGet(k,d){ try{ var v=localStorage.getItem("sw_"+k); return v===null?d:v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem("sw_"+k,v); }catch(e){} }
+
+/* ---- CSV ---- */
+function parseCSV(t){
+  var rows=[],row=[],cur="",q=false,i=0;
+  t=t.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  for(;i<t.length;i++){
+    var c=t[i];
+    if(q){
+      if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===","){ row.push(cur); cur=""; }
+      else if(c==="\n"){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else cur+=c;
+    }
+  }
+  if(cur.length||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+function parseFee(s){
+  s=(s||"").trim().replace(/^'+/,"");
+  if(!s) return null;
+  var cur = /USD|\$|доллар|米ドル|ドル/i.test(s) ? "USD"
+          : /THB|บาท|baht/i.test(s) ? "THB" : "";
+  var m=s.match(/\d[\d.,]*/);
+  if(!m) return null;
+  var n=m[0];
+  n = /^\d{1,3}([.,]\d{3})+$/.test(n) ? n.replace(/[.,]/g,"") : n.replace(/,/g,"");
+  var v=parseFloat(n);
+  if(isNaN(v)) return null;
+  return {amt:v, cur:cur||"ไม่ระบุสกุล"};
+}
+function build(text){
+  var rows=parseCSV(text);
+  if(!rows.length) throw new Error("ไฟล์ว่าง");
+  var head=rows[0].map(function(h){ return h.trim(); });
+  var ix={};
+  head.forEach(function(h,i){ ix[h]=i; });
+  function col(r,name){ var i=ix[name]; return i===undefined?"":(r[i]||"").trim(); }
+  players=[];
+  for(var i=1;i<rows.length;i++){
+    var r=rows[i];
+    if(!r.join("").trim()) continue;
+    var f=parseFee(col(r,"Total_Fee"));
+    players.push({
+      ts:col(r,"Timestamp"), status:col(r,"Status"),
+      feeAmt:f?f.amt:0, feeCur:f?f.cur:"",
+      team:col(r,"Team Name"), gender:col(r,"Gender").toUpperCase(),
+      country:col(r,"Country").toUpperCase()||"ไม่ระบุ",
+      age:parseInt(col(r,"Age"),10)||0, shirt:col(r,"T-Shirt's size").toUpperCase(),
+      e1:col(r,"Event 1 (tab)"), e2:col(r,"Event 2 (tab)")
+    });
+  }
+  var map={};
+  players.forEach(function(p){
+    [p.e1,p.e2].forEach(function(e){
+      if(!e) return;
+      if(!map[e]){
+        var m=/^\(([A-Z0-9]{2})\)\s*(.+)$/.exec(e);
+        map[e]={event:e,cat:m?m[1]:"?",grp:m?m[2]:e,
+                type:/^\((MS|WS)\)/.test(e)?"เดี่ยว":"คู่",
+                entries:0,paid:0,pending:0,teamq:0};
+      }
+      map[e].entries++;
+      if(p.status==="Paid") map[e].paid++;
+      else if(p.status==="Team") map[e].teamq++;
+      else map[e].pending++;
+    });
+  });
+  events=Object.keys(map).map(function(k){ return map[k]; });
+}
+
+/* ---- helpers ---- */
 function fmt(n){ return n.toLocaleString("en-US"); }
-function mk(id,cfg){ if(charts[id])charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
-function O(x){ var o={responsive:true,maintainAspectRatio:false,animation:{duration:300},
-  plugins:{legend:{display:false}}}; for(var k in x) o[k]=x[k]; return o; }
+function evF(){ return cat==="ALL"?events:events.filter(function(e){return e.cat===cat;}); }
+function plF(){ return stFilter==="ALL"?players:players.filter(function(p){return p.status===stFilter;}); }
 function tally(a,f){ var m={}; a.forEach(function(x){var k=f(x); if(k)m[k]=(m[k]||0)+1;}); return m; }
 function pairs(o,n){ var a=Object.keys(o).map(function(k){return [k,o[k]];});
   a.sort(function(x,y){return y[1]-x[1];}); return n?a.slice(0,n):a; }
+function mk(id,cfg){ if(charts[id])charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+function O(x){ var o={responsive:true,maintainAspectRatio:false,animation:{duration:300},
+  plugins:{legend:{display:false}}}; for(var k in x) o[k]=x[k]; return o; }
+function cnt(s){ return players.filter(function(p){return p.status===s;}).length; }
 
-/* KPI */
-var totalEntries=events.reduce(function(a,e){return a+e.entries;},0);
-var nCountries=Object.keys(tally(players,function(p){return p.country;})).length;
-document.getElementById("kpis").innerHTML=[
-  ["ผู้สมัคร",fmt(K.regs),K.indiv+" เดี่ยว · "+K.team+" ทีม"],
-  ["เข้าแข่ง (slots)",fmt(totalEntries),K.tabs+" รายการแข่ง"],
-  ["จ่ายแล้ว / รอจ่าย",K.sPaid+" / "+K.sPend,"ระดับ slot · จากทีม "+K.sTeam],
-  ["ประเทศ",fmt(nCountries),"ต้องตรวจข้อมูล "+K.issues+" จุด"]
-].map(function(c){ return '<div class="card kpi"><div class="lab">'+c[0]+'</div><div class="val">'+
-  c[1]+'</div><div class="note">'+c[2]+'</div></div>'; }).join("");
+/* ---- renders ---- */
+function drawKpi(){
+  var slots=events.reduce(function(a,e){return a+e.entries;},0);
+  var nC=Object.keys(tally(players,function(p){return p.country;})).length;
+  document.getElementById("kpis").innerHTML=[
+    ["ผู้สมัคร",fmt(players.length),cnt("Team")+" มาจากทีม"],
+    ["เข้าแข่ง (slots)",fmt(slots),events.length+" รายการแข่ง"],
+    ["จ่ายแล้ว / รอจ่าย",cnt("Paid")+" / "+cnt("Pending"),"ไม่รวมผู้สมัครจากทีม"],
+    ["ประเทศ",fmt(nC),"จากผู้สมัครที่ระบุ"]
+  ].map(function(c){ return '<div class="card kpi"><div class="lab">'+c[0]+'</div><div class="val">'+
+    c[1]+'</div><div class="note">'+c[2]+'</div></div>'; }).join("");
+}
 
-/* payment */
-mk("cPay",{type:"doughnut",data:{labels:["จ่ายแล้ว","รอจ่าย"],
-  datasets:[{data:[PAY.paid,PAY.pend],backgroundColor:[C.green,C.amber],borderWidth:2,borderColor:"#fff"}]},
-  options:O({cutout:"58%",plugins:{legend:{position:"bottom",labels:{boxWidth:10,font:{size:11}}}}})});
+function drawPay(){
+  var ks=["Paid","Pending","Team"].filter(function(s){return cnt(s);});
+  mk("cPay",{type:"doughnut",data:{labels:ks.map(function(k){return ST[k];}),
+    datasets:[{data:ks.map(cnt),
+      backgroundColor:ks.map(function(k){return k==="Paid"?C.green:k==="Pending"?C.amber:C.indigo;}),
+      borderWidth:2,borderColor:"#fff"}]},
+    options:O({cutout:"58%",plugins:{legend:{position:"bottom",labels:{boxWidth:10,font:{size:11}}}}})});
 
-var mh='<table><thead><tr><th>สกุล</th><th>เก็บแล้ว</th><th>ค้าง</th><th>รวม</th></tr></thead><tbody>';
-["THB","USD"].forEach(function(c){ var m=MONEY[c];
-  mh+='<tr><td><span class="pill">'+c+'</span></td><td style="color:#15803d;font-weight:600">'+fmt(m.paid)+
-      '</td><td style="color:#b45309">'+fmt(m.pend)+'</td><td style="font-weight:600">'+fmt(m.paid+m.pend)+'</td></tr>'; });
-mh+='<tr><td colspan="4" style="text-align:left;color:#b45309;font-size:11.5px;padding-top:9px">'+
-    '⚠ ทีมชีต '+K.team+' ราย ('+K.sTeam+' slots) ไม่มีค่าสมัครบันทึกไว้ — ยังไม่รวมในยอดข้างบน</td></tr>';
-mh+='</tbody></table><div style="font-size:10.5px;color:#6b7280;margin-top:9px">ยอดข้างบนมาจากฟอร์มเดี่ยว 96 ใบที่ระบุค่าธรรมเนียม (THB 14 ราย · USD 82 ราย) ไม่แปลงสกุลเงิน</div>';
-document.getElementById("money").innerHTML=mh;
+  var m={};
+  players.forEach(function(p){
+    if(!p.feeCur) return;
+    if(!m[p.feeCur]) m[p.feeCur]={Paid:0,Pending:0,Team:0};
+    m[p.feeCur][p.status]=(m[p.feeCur][p.status]||0)+p.feeAmt;
+  });
+  var h='<table><thead><tr><th>สกุล</th><th>เก็บแล้ว</th><th>ค้าง</th><th>ทีม</th><th>รวม</th></tr></thead><tbody>';
+  Object.keys(m).sort().forEach(function(c){
+    var o=m[c], tot=o.Paid+o.Pending+o.Team;
+    h+='<tr><td><span class="pill">'+c+'</span></td>'+
+       '<td style="color:#15803d;font-weight:600">'+fmt(o.Paid)+'</td>'+
+       '<td style="color:#b45309">'+fmt(o.Pending)+'</td>'+
+       '<td style="color:#4338ca">'+fmt(o.Team)+'</td>'+
+       '<td style="font-weight:600">'+fmt(tot)+'</td></tr>';
+  });
+  h+='</tbody></table><div class="note-line">คิดจากช่อง Total_Fee ตรง ๆ ไม่แปลงสกุลเงิน · '+
+     'ยอดของทีมกรอกเป็น “1,000” โดยไม่ระบุสกุล จึงแยกเป็นแถวต่างหาก</div>';
+  document.getElementById("money").innerHTML=h;
+}
 
-/* team section */
-var teamEv=events.filter(function(e){ return e.teamq>0; }).sort(function(a,b){ return b.teamq-a.teamq; });
-document.getElementById("tkpis").innerHTML=[
-  ["ผู้สมัครจากทีม",fmt(K.team),"จาก "+fmt(K.regs)+" ราย ("+Math.round(K.team/K.regs*100)+"%)"],
-  ["slots จากทีม",fmt(K.sTeam),"จาก "+fmt(totalEntries)+" slots ("+Math.round(K.sTeam/totalEntries*100)+"%)"],
-  ["รายการที่มีทีมลง",fmt(teamEv.length),"จาก "+K.tabs+" รายการ"],
-  ["ค่าสมัคร","—","ไม่มีข้อมูลในชีต"]
-].map(function(c){ return '<div class="card kpi"><div class="lab">'+c[0]+'</div><div class="val">'+
-  c[1]+'</div><div class="note">'+c[2]+'</div></div>'; }).join("");
+function drawTeam(){
+  var tEv=events.filter(function(e){return e.teamq>0;}).sort(function(a,b){return b.teamq-a.teamq;});
+  var sTeam=events.reduce(function(a,e){return a+e.teamq;},0);
+  var slots=events.reduce(function(a,e){return a+e.entries;},0);
+  var nT=cnt("Team");
+  var tMoney=players.filter(function(p){return p.status==="Team";})
+                    .reduce(function(a,p){return a+p.feeAmt;},0);
+  document.getElementById("tkpis").innerHTML=[
+    ["ผู้สมัครจากทีม",fmt(nT),players.length?"จาก "+players.length+" ราย ("+Math.round(nT/players.length*100)+"%)":""],
+    ["slots จากทีม",fmt(sTeam),slots?"จาก "+slots+" slots ("+Math.round(sTeam/slots*100)+"%)":""],
+    ["รายการที่มีทีมลง",fmt(tEv.length),"จาก "+events.length+" รายการ"],
+    ["ค่าสมัครรวม",fmt(tMoney),"ไม่ระบุสกุลในชีต"]
+  ].map(function(c){ return '<div class="card kpi"><div class="lab">'+c[0]+'</div><div class="val">'+
+    c[1]+'</div><div class="note">'+c[2]+'</div></div>'; }).join("");
 
-var tByCat={};
-events.forEach(function(e){ if(e.teamq) tByCat[e.cat]=(tByCat[e.cat]||0)+e.teamq; });
-var tcats=CATORDER.filter(function(c){return tByCat[c];});
-mk("cTeamCat",{type:"bar",data:{labels:tcats,
-  datasets:[{data:tcats.map(function(c){return tByCat[c];}),backgroundColor:C.indigo,borderRadius:4}]},
-  options:O({scales:{x:{ticks:{font:{size:11}},grid:{display:false}},
-    y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+  var by={};
+  events.forEach(function(e){ if(e.teamq) by[e.cat]=(by[e.cat]||0)+e.teamq; });
+  var cs=CATORDER.filter(function(c){return by[c];});
+  mk("cTeamCat",{type:"bar",data:{labels:cs,datasets:[{data:cs.map(function(c){return by[c];}),
+    backgroundColor:C.indigo,borderRadius:4}]},
+    options:O({scales:{x:{ticks:{font:{size:11}},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
 
-var tt=document.getElementById("tTeam");
-tt.tHead.innerHTML='<tr><th>รายการ</th><th>จากทีม</th><th>รวมในรายการ</th></tr>';
-tt.tBodies[0].innerHTML=teamEv.map(function(e){
-  return '<tr><td><strong>'+e.event+'</strong></td><td><span class="badge b-team">'+e.teamq+
-    '</span></td><td>'+e.entries+'</td></tr>'; }).join("");
+  var t=document.getElementById("tTeam");
+  t.tHead.innerHTML='<tr><th>รายการ</th><th>จากทีม</th><th>รวม</th></tr>';
+  t.tBodies[0].innerHTML=tEv.map(function(e){
+    return '<tr><td><strong>'+e.event+'</strong></td><td><span class="badge b-team">'+e.teamq+
+      '</span></td><td>'+e.entries+'</td></tr>'; }).join("");
+}
 
-/* events */
 function drawEvent(){
   var ev=evF().slice().sort(function(a,b){return b.entries-a.entries;});
   var small=window.innerWidth<560;
@@ -390,17 +295,19 @@ function drawEvent(){
     options:O({indexAxis:"y",scales:{x:{stacked:true,beginAtZero:true,ticks:{font:{size:small?9:10},precision:0}},
       y:{stacked:true,ticks:{font:{size:small?9:10},autoSkip:false},grid:{display:false}}}})});
 }
+
 function drawType(){
   var ev=evF(), byCat={};
   ev.forEach(function(e){ byCat[e.cat]=(byCat[e.cat]||0)+e.entries; });
-  var cats=CATORDER.filter(function(c){return byCat[c];});
-  mk("cType",{type:"bar",data:{labels:cats.map(function(c){return c;}),
-    datasets:[{data:cats.map(function(c){return byCat[c];}),
-      backgroundColor:[C.blue,C.pink,C.teal,C.violet,C.amber,C.slate,C.red],borderRadius:4}]},
-    options:O({scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+  var cs=CATORDER.filter(function(c){return byCat[c];});
+  mk("cType",{type:"bar",data:{labels:cs,datasets:[{data:cs.map(function(c){return byCat[c];}),
+    backgroundColor:[C.blue,C.pink,C.teal,C.violet,C.amber,C.slate,C.red],borderRadius:4}]},
+    options:O({scales:{x:{ticks:{font:{size:11}},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
 
   var byG={};
-  ev.forEach(function(e){ var g=/^CA/.test(e.grp)?"คลาส "+e.grp:(/^PRO/.test(e.grp)?"PRO":(/^\d{3}$/.test(e.grp)?"3P "+e.grp:e.grp));
+  ev.forEach(function(e){
+    var g=/^CA/.test(e.grp)?"คลาส "+e.grp:(/^PRO/.test(e.grp)?"PRO":(/^\d{3}$/.test(e.grp)?"3P "+e.grp:e.grp));
     byG[g]=(byG[g]||0)+e.entries; });
   var gp=pairs(byG,12);
   mk("cGrp",{type:"bar",data:{labels:gp.map(function(x){return x[0];}),
@@ -408,8 +315,10 @@ function drawType(){
     options:O({indexAxis:"y",scales:{x:{beginAtZero:true,ticks:{font:{size:10},precision:0}},
       y:{ticks:{font:{size:10}},grid:{display:false}}}})});
 }
+
 function drawTable(){
-  var ev=evF().slice(), cols=[["event","รายการ"],["type","ประเภท"],["entries","เข้าแข่ง"],["paid","จ่ายแล้ว"],["pending","รอจ่าย"],["teamq","ทีม"]];
+  var ev=evF().slice();
+  var cols=[["event","รายการ"],["type","ประเภท"],["entries","เข้าแข่ง"],["paid","จ่ายแล้ว"],["pending","รอจ่าย"],["teamq","ทีม"]];
   ev.sort(function(a,b){ var x=a[sortKey],y=b[sortKey];
     return typeof x==="string"?sortDir*x.localeCompare(y):sortDir*(x-y); });
   var t=document.getElementById("tEvent");
@@ -425,44 +334,104 @@ function drawTable(){
       if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=(k==="event"||k==="type")?1:-1; }
       drawTable(); }; });
 }
-function drawFilters(){
-  var cats=["ALL"].concat(CATORDER.filter(function(c){ return events.some(function(e){return e.cat===c;}); }));
-  document.getElementById("fCat").innerHTML=cats.map(function(c){
-    return '<button class="chip'+(cat===c?" on":"")+'" data-c="'+c+'">'+(c==="ALL"?"ทุกประเภท":(CATLABEL[c]||c))+"</button>"; }).join("");
-  Array.prototype.forEach.call(document.querySelectorAll("#fCat .chip"),function(b){
-    b.onclick=function(){ cat=b.getAttribute("data-c"); drawFilters(); drawEvent(); drawType(); drawTable(); }; });
+
+function drawPlayers(){
+  var p=plF();
+  var ctry=pairs(tally(p,function(x){return x.country;}),12);
+  mk("cCountry",{type:"bar",data:{labels:ctry.map(function(x){return x[0];}),
+    datasets:[{data:ctry.map(function(x){return x[1];}),backgroundColor:C.blue,borderRadius:4}]},
+    options:O({indexAxis:"y",scales:{x:{beginAtZero:true,ticks:{font:{size:10},precision:0}},
+      y:{ticks:{font:{size:10}},grid:{display:false}}}})});
+
+  var bk=["<20","20-29","30-39","40-49","50-59","60-69","70+"], bc={};
+  bk.forEach(function(b){bc[b]=0;});
+  p.forEach(function(x){ var a=x.age; if(!a) return;
+    bc[a<20?"<20":a<30?"20-29":a<40?"30-39":a<50?"40-49":a<60?"50-59":a<70?"60-69":"70+"]++; });
+  mk("cAge",{type:"bar",data:{labels:bk,datasets:[{data:bk.map(function(b){return bc[b];}),
+    backgroundColor:C.teal,borderRadius:4}]},
+    options:O({scales:{x:{ticks:{font:{size:10}},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+
+  var g=tally(p,function(x){return x.gender==="M"?"ชาย":x.gender==="F"?"หญิง":"ไม่ระบุ";});
+  var gk=Object.keys(g);
+  mk("cGender",{type:"doughnut",data:{labels:gk,datasets:[{data:gk.map(function(k){return g[k];}),
+    backgroundColor:gk.map(function(k){return k==="ชาย"?C.blue:k==="หญิง"?C.pink:C.slate;}),
+    borderWidth:2,borderColor:"#fff"}]},
+    options:O({cutout:"55%",plugins:{legend:{position:"bottom",labels:{boxWidth:10,font:{size:11}}}}})});
+
+  var ord=["XS","S","M","L","XL","2XL","3XL"], sh=tally(p,function(x){return x.shirt||"ไม่ระบุ";});
+  var sk=ord.filter(function(o){return sh[o];}).concat(Object.keys(sh).filter(function(k){return ord.indexOf(k)<0;}));
+  mk("cShirt",{type:"bar",data:{labels:sk,datasets:[{data:sk.map(function(k){return sh[k];}),
+    backgroundColor:C.violet,borderRadius:4}]},
+    options:O({scales:{x:{ticks:{font:{size:10}},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+
+  var byDay={};
+  p.forEach(function(x){
+    var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(x.ts||"");
+    if(!m) return;
+    var k=m[3]+"-"+("0"+m[1]).slice(-2)+"-"+("0"+m[2]).slice(-2);
+    byDay[k]=(byDay[k]||0)+1; });
+  var keys=Object.keys(byDay).sort(), c=0;
+  mk("cTime",{type:"line",data:{labels:keys.map(function(k){return k.slice(5);}),
+    datasets:[{data:keys.map(function(k){c+=byDay[k];return c;}),borderColor:C.blue,
+      backgroundColor:"rgba(37,99,235,.12)",fill:true,tension:.25,pointRadius:0,borderWidth:2}]},
+    options:O({scales:{x:{ticks:{maxTicksLimit:7,font:{size:10}},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
 }
 
-/* players */
-var ctry=pairs(tally(players,function(p){return p.country;}),12);
-mk("cCountry",{type:"bar",data:{labels:ctry.map(function(x){return x[0];}),
-  datasets:[{data:ctry.map(function(x){return x[1];}),backgroundColor:C.blue,borderRadius:4}]},
-  options:O({indexAxis:"y",scales:{x:{beginAtZero:true,ticks:{font:{size:10},precision:0}},
-    y:{ticks:{font:{size:10}},grid:{display:false}}}})});
+function drawFilters(){
+  var cs=["ALL"].concat(CATORDER.filter(function(c){ return events.some(function(e){return e.cat===c;}); }));
+  document.getElementById("fCat").innerHTML=cs.map(function(c){
+    return '<button class="chip'+(cat===c?" on":"")+'" data-c="'+c+'">'+
+      (c==="ALL"?"ทุกประเภท":(CATLABEL[c]||c))+"</button>"; }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll("#fCat .chip"),function(b){
+    b.onclick=function(){ cat=b.getAttribute("data-c"); lsSet("cat",cat);
+      drawFilters(); drawEvent(); drawType(); drawTable(); }; });
 
-var bk=["<20","20-29","30-39","40-49","50-59","60-69","70+"], bc={};
-bk.forEach(function(b){bc[b]=0;});
-players.forEach(function(p){ var a=p.age;
-  bc[a<20?"<20":a<30?"20-29":a<40?"30-39":a<50?"40-49":a<60?"50-59":a<70?"60-69":"70+"]++; });
-mk("cAge",{type:"bar",data:{labels:bk,datasets:[{data:bk.map(function(b){return bc[b];}),
-  backgroundColor:C.teal,borderRadius:4}]},
-  options:O({scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+  var ss=[["ALL","ทั้งหมด"],["Paid","จ่ายแล้ว"],["Pending","รอจ่าย"],["Team","จากทีม"]];
+  document.getElementById("fStatus").innerHTML=ss.map(function(s){
+    return '<button class="chip'+(stFilter===s[0]?" on":"")+'" data-s="'+s[0]+'">'+s[1]+"</button>"; }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll("#fStatus .chip"),function(b){
+    b.onclick=function(){ stFilter=b.getAttribute("data-s"); lsSet("st",stFilter);
+      drawFilters(); drawPlayers(); }; });
+}
 
-var g=tally(players,function(p){return p.gender==="M"?"ชาย":"หญิง";}), gk=Object.keys(g);
-mk("cGender",{type:"doughnut",data:{labels:gk,datasets:[{data:gk.map(function(k){return g[k];}),
-  backgroundColor:gk.map(function(k){return k==="ชาย"?C.blue:C.pink;}),borderWidth:2,borderColor:"#fff"}]},
-  options:O({cutout:"55%",plugins:{legend:{position:"bottom",labels:{boxWidth:10,font:{size:11}}}}})});
+function renderAll(){
+  document.getElementById("status").style.display="none";
+  document.getElementById("app").style.display="block";
+  var d=new Date();
+  document.getElementById("meta").textContent=
+    "ข้อมูลสดจาก Google Sheet · โหลดเมื่อ "+d.toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"});
+  document.getElementById("foot").textContent=
+    "ที่มา: SAWASDEE 2026 REGISTER DATA (แท็บที่เผยแพร่แบบไม่มีข้อมูลส่วนบุคคล) · กดรีเฟรชเพื่อดึงข้อมูลล่าสุด";
+  drawKpi(); drawFilters(); drawPay(); drawTeam();
+  drawEvent(); drawType(); drawTable(); drawPlayers();
+}
 
-var ord=["XS","S","M","L","XL","2XL","3XL"], sh=tally(players,function(p){return p.shirt||"ไม่ระบุ";});
-var sk=ord.filter(function(o){return sh[o];});
-mk("cShirt",{type:"bar",data:{labels:sk,datasets:[{data:sk.map(function(k){return sh[k];}),
-  backgroundColor:C.violet,borderRadius:4}]},
-  options:O({scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},precision:0}}}})});
+function fail(msg){
+  var s=document.getElementById("status");
+  s.style.display="block";
+  document.getElementById("app").style.display="none";
+  s.innerHTML='<div class="err"><b>โหลดข้อมูลไม่สำเร็จ</b><br>'+msg+
+    '<br><br>ตรวจสอบว่าแท็บใน Google Sheet ยังเปิด Publish to web อยู่ แล้วลองรีเฟรชอีกครั้ง</div>';
+}
 
-drawFilters(); drawEvent(); drawType(); drawTable();
+function load(){
+  var s=document.getElementById("status");
+  s.style.display="block"; s.textContent="กำลังโหลดข้อมูลจาก Google Sheet…";
+  fetch(CSV+"&_="+Date.now(),{cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(function(t){ build(t); if(!players.length) throw new Error("ไม่พบข้อมูลในไฟล์"); renderAll(); })
+    .catch(function(e){ fail(e && e.message ? e.message : String(e)); });
+}
+
+cat=lsGet("cat","ALL"); stFilter=lsGet("st","ALL");
+document.getElementById("reload").onclick=load;
 var small=window.innerWidth<560, rt=null;
 window.addEventListener("resize",function(){ clearTimeout(rt); rt=setTimeout(function(){
-  var s=window.innerWidth<560; if(s!==small){ small=s; drawEvent(); } },220); });
+  var v=window.innerWidth<560; if(v!==small && events.length){ small=v; drawEvent(); } },220); });
+load();
 })();
 </script>
 </body>
